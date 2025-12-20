@@ -1,0 +1,18 @@
+{
+  "name": "auto-parts-production-tracker",
+  "version": "1.0.0",
+  "description": "Production tracking system for auto parts manufacturing",
+  "scripts": {
+    "start": "node api/health.js",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "mongoose": "^7.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "keywords": ["production", "tracking", "manufacturing", "auto-parts"],
+  "author": "Auto Parts Tracker",
+  "license": "MIT"
+}
