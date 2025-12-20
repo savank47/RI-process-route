@@ -429,9 +429,11 @@
     <script>
         // API Configuration
         // API Configuration - Update this after Vercel deployment
-        const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
-            ? 'http://localhost:3000/api' 
-            : `${window.location.origin}/api`; // Auto-detect deployed URL
+        //const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+        //   ? 'http://localhost:3000/api' 
+        //    : `${window.location.origin}/api`; // Auto-detect deployed URL
+
+        const API_BASE_URL = 'https://auto-parts-tracker.vercel.app/api';
 
         let selectedColor = 'blue';
         let selectedProcessesForRoute = [];
