@@ -1300,7 +1300,8 @@
                 `;
             }).join('');
 
-            renderBatchSummary();
+            // Don't call renderBatchSummary here - it causes the tracking to close
+            // renderBatchSummary();
         }
 
         async function updateProcessStatus(batchId, processIndex, status) {
@@ -1327,11 +1328,11 @@
                 // Store current batch selection to restore it
                 const currentBatchId = document.getElementById('trackingBatchSelect').value;
                 
-                // Update only what's necessary - don't switch tabs
+                // Update only the tracking display - DON'T call renderBatchSummary which closes it
                 await loadBatchTracking();
                 await updateStats();
                 
-                // Restore batch selection in case it was cleared
+                // Restore batch selection to keep the tracking display open
                 document.getElementById('trackingBatchSelect').value = currentBatchId;
                 
                 showToast('Process status updated', 'success');
