@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Auto Parts Production Tracker Pro</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏭</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='0.9em' font-size='90'>🏭</text></svg>">
     <style>
         body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
         .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: 600; }
@@ -321,13 +321,13 @@
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold text-gray-700 mb-2"><i class="fas fa-bolt mr-2"></i>Quick Actions:</h4>
                             <div class="flex gap-2 flex-wrap">
-                                <button onclick="event.preventDefault(); startFirstPendingProcess()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction('startNext')" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
                                     <i class="fas fa-play mr-1"></i>Start Next Process
                                 </button>
-                                <button onclick="event.preventDefault(); completeCurrentProcess()" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction('completeCurrent')" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
                                     <i class="fas fa-check mr-1"></i>Complete Current
                                 </button>
-                                <button onclick="event.preventDefault(); resetAllProcesses()" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction('resetAll')" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
                                     <i class="fas fa-redo mr-1"></i>Reset All
                                 </button>
                             </div>
@@ -375,7 +375,7 @@
                 <div class="flex flex-col md:flex-row justify-between items-center">
                     <div class="text-center md:text-left mb-4 md:mb-0">
                         <p class="font-semibold">Auto Parts Production Tracker Pro © 2024</p>
-                        <p class="text-xs text-gray-400 mt-1">Backend: Node.js + MongoDB | Deployed on Railway</p>
+                        <p class="text-xs text-gray-400 mt-1">Backend: Node.js + MongoDB | Deployed on Vercel</p>
                     </div>
                     <div class="flex gap-3 flex-wrap justify-center">
                         <button onclick="exportData()" class="bg-green-600 hover:bg-green-700 text-white text-sm px-4 py-2 rounded-lg transition">
@@ -429,10 +429,9 @@
 
     <script>
         // API Configuration
-        // API Configuration - Update this after Vercel deployment
         const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
             ? 'http://localhost:3000/api' 
-            : `${window.location.origin}/api`; // Auto-detect deployed URL
+            : `${window.location.origin}/api`;
 
         let selectedColor = 'blue';
         let selectedProcessesForRoute = [];
@@ -464,58 +463,59 @@
 
         // Generic API calls
         async function apiCall(endpoint, method = 'GET', data = null) {
-          const options = {
-            method: method,
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            mode: 'cors'
-          };
-          
-          if (data) {
-            options.body = JSON.stringify(data);
-          }
-        
-          try {
-            const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+            const options = {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                mode: 'cors'
+            };
             
-            if (!response.ok) {
-              let errorData;
-              const contentType = response.headers.get('content-type');
-              
-              try {
-                if (contentType && contentType.includes('application/json')) {
-                  errorData = await response.json();
-                } else {
-                  errorData = await response.text();
+            if (data) {
+                options.body = JSON.stringify(data);
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}${endpoint}`, options);
+                
+                if (!response.ok) {
+                    let errorData;
+                    const contentType = response.headers.get('content-type');
+                    
+                    try {
+                        if (contentType && contentType.includes('application/json')) {
+                            errorData = await response.json();
+                        } else {
+                            errorData = await response.text();
+                        }
+                    } catch (parseError) {
+                        errorData = `Status: ${response.status}`;
+                    }
+                    
+                    throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
                 }
-              } catch (parseError) {
-                errorData = `Status: ${response.status}`;
-              }
-              
-              throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
+                
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.includes('application/json')) {
+                    return await response.json();
+                } else {
+                    const text = await response.text();
+                    try {
+                        return JSON.parse(text);
+                    } catch {
+                        return text;
+                    }
+                }
+            } catch (error) {
+                console.error('API call failed:', error.message);
+                // Only fallback to localStorage for GET requests
+                if (method === 'GET') {
+                    return useLocalStorageFallback(endpoint, method, data);
+                }
+                throw error;
             }
-            
-            const contentType = response.headers.get('content-type');
-            if (contentType && contentType.includes('application/json')) {
-              return await response.json();
-            } else {
-              const text = await response.text();
-              try {
-                return JSON.parse(text);
-              } catch {
-                return text;
-              }
-            }
-          } catch (error) {
-            console.error('API call failed:', error.message);
-            // Only fallback to localStorage for GET requests
-            if (method === 'GET') {
-              return useLocalStorageFallback(endpoint, method, data);
-            }
-            throw error;
-          }
         }
+
         // LocalStorage Fallback
         function useLocalStorageFallback(endpoint, method, data) {
             const storageKey = `appData${endpoint.replace(/\/api\/(\w+).*/, '$1')}`;
@@ -566,10 +566,9 @@
             document.getElementById(`content-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).classList.add('tab-active');
             document.getElementById(`tab-${tabName}`).classList.remove('text-gray-600');
-        
-            // Load data when switching tabs
+
             if (tabName === 'processes') {
-                renderProcessesList(); // Add this line
+                renderProcessesList();
             } else if (tabName === 'items') {
                 renderAvailableProcessesForItem();
                 renderItemsList();
@@ -617,30 +616,28 @@
             const name = document.getElementById('processName').value.trim();
             const code = document.getElementById('processCode').value.trim();
             const description = document.getElementById('processDescription').value.trim();
-        
+
             if (!name || !code) {
                 showToast('Please enter process name and code', 'error');
                 return;
             }
-        
+
             const process = {
                 name,
                 code,
                 description,
                 color: selectedColor
             };
-        
+
             try {
                 console.log('Adding process:', process);
                 const result = await apiCall('/processes', 'POST', process);
                 console.log('Process added:', result);
                 
-                // Clear form
                 document.getElementById('processName').value = '';
                 document.getElementById('processCode').value = '';
                 document.getElementById('processDescription').value = '';
                 
-                // Re-render the list
                 await renderProcessesList();
                 await updateStats();
                 showToast(`Process "${name}" added to library!`);
@@ -663,7 +660,7 @@
             { name: 'Dispatch', code: 'DSP-001', description: 'Shipping and delivery', color: 'pink' }
         ];
 
-         async function loadDefaultProcesses() {
+        async function loadDefaultProcesses() {
             if (!confirm('This will add default processes to your library. Continue?')) return;
             
             try {
@@ -691,7 +688,6 @@
         }
 
         function editProcess(processId) {
-            // This would populate the edit modal - simplified for now
             document.getElementById('editProcessId').value = processId;
             document.getElementById('editModal').classList.remove('hidden');
             document.getElementById('editModal').classList.add('flex');
@@ -716,49 +712,49 @@
             showToast('Process updated!');
         }
 
-            async function renderProcessesList() {
-                const container = document.getElementById('processesList');
+        async function renderProcessesList() {
+            const container = document.getElementById('processesList');
+            
+            try {
+                const processes = await apiCall('/processes', 'GET');
                 
-                try {
-                    const processes = await apiCall('/processes', 'GET');
-                    
-                    console.log('Rendering processes:', processes); // Debug log
-                    
-                    if (!processes || processes.length === 0) {
-                        container.innerHTML = '<p class="text-gray-500 text-center py-8 w-full">No processes in library. Add your first process above or load default processes.</p>';
-                        return;
-                    }
-            
-                    const colorClasses = {
-                        gray: 'bg-gray-100 text-gray-800 border-gray-300',
-                        red: 'bg-red-100 text-red-800 border-red-300',
-                        orange: 'bg-orange-100 text-orange-800 border-orange-300',
-                        amber: 'bg-amber-100 text-amber-800 border-amber-300',
-                        green: 'bg-green-100 text-green-800 border-green-300',
-                        teal: 'bg-teal-100 text-teal-800 border-teal-300',
-                        blue: 'bg-blue-100 text-blue-800 border-blue-300',
-                        indigo: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-                        purple: 'bg-purple-100 text-purple-800 border-purple-300',
-                        pink: 'bg-pink-100 text-pink-800 border-pink-300'
-                    };
-            
-                    container.innerHTML = processes.map(proc => `
-                        <div class="process-chip ${colorClasses[proc.color] || colorClasses.blue} border-2 rounded-lg px-4 py-2 flex items-center gap-2">
-                            <span class="font-semibold">${proc.name}</span>
-                            <span class="text-xs opacity-75">${proc.code}</span>
-                            ${proc.description ? `<span class="text-xs opacity-60 ml-1">(${proc.description})</span>` : ''}
-                            <button onclick="deleteProcess('${proc._id}')" class="ml-auto opacity-50 hover:opacity-100 transition" title="Delete process">
-                                <i class="fas fa-trash text-sm"></i>
-                            </button>
-                        </div>
-                    `).join('');
-                    
-                    console.log('Processes rendered successfully');
-                } catch (error) {
-                    console.error('Error rendering processes:', error);
-                    container.innerHTML = '<p class="text-red-500 text-center py-8">Error loading processes. Check console for details.</p>';
+                console.log('Rendering processes:', processes);
+                
+                if (!processes || processes.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-8 w-full">No processes in library. Add your first process above or load default processes.</p>';
+                    return;
                 }
+
+                const colorClasses = {
+                    gray: 'bg-gray-100 text-gray-800 border-gray-300',
+                    red: 'bg-red-100 text-red-800 border-red-300',
+                    orange: 'bg-orange-100 text-orange-800 border-orange-300',
+                    amber: 'bg-amber-100 text-amber-800 border-amber-300',
+                    green: 'bg-green-100 text-green-800 border-green-300',
+                    teal: 'bg-teal-100 text-teal-800 border-teal-300',
+                    blue: 'bg-blue-100 text-blue-800 border-blue-300',
+                    indigo: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+                    purple: 'bg-purple-100 text-purple-800 border-purple-300',
+                    pink: 'bg-pink-100 text-pink-800 border-pink-300'
+                };
+
+                container.innerHTML = processes.map(proc => `
+                    <div class="process-chip ${colorClasses[proc.color] || colorClasses.blue} border-2 rounded-lg px-4 py-2 flex items-center gap-2">
+                        <span class="font-semibold">${proc.name}</span>
+                        <span class="text-xs opacity-75">${proc.code}</span>
+                        ${proc.description ? `<span class="text-xs opacity-60 ml-1">(${proc.description})</span>` : ''}
+                        <button onclick="deleteProcess('${proc._id}')" class="ml-auto opacity-50 hover:opacity-100 transition" title="Delete process">
+                            <i class="fas fa-trash text-sm"></i>
+                        </button>
+                    </div>
+                `).join('');
+                
+                console.log('Processes rendered successfully');
+            } catch (error) {
+                console.error('Error rendering processes:', error);
+                container.innerHTML = '<p class="text-red-500 text-center py-8">Error loading processes. Check console for details.</p>';
             }
+        }
 
         // ============ ITEMS MANAGEMENT ============
         async function renderAvailableProcessesForItem() {
@@ -917,11 +913,16 @@
                 }))
             };
 
-            await apiCall('/items', 'POST', item);
-            clearItemForm();
-            await renderItemsList();
-            await updateStats();
-            showToast(`Item "${name}" saved with ${selectedProcessesForRoute.length} processes!`);
+            try {
+                await apiCall('/items', 'POST', item);
+                clearItemForm();
+                await renderItemsList();
+                await updateStats();
+                showToast(`Item "${name}" saved with ${selectedProcessesForRoute.length} processes!`);
+            } catch (error) {
+                console.error('Failed to add item:', error);
+                showToast('Failed to add item: ' + error.message, 'error');
+            }
         }
 
         function clearItemForm() {
@@ -1178,24 +1179,62 @@
                 batches.map(batch => `<option value="${batch._id}">${batch.batchNumber} - ${batch.itemName}</option>`).join('');
         }
 
+        // Wrapper functions to ensure no page reload
+        function handleStatusChange(batchId, processIndex, status) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            updateProcessStatus(batchId, processIndex, status);
+            return false;
+        }
+
+        function handleQuickAction(action) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            
+            switch(action) {
+                case 'startNext':
+                    startFirstPendingProcess();
+                    break;
+                case 'completeCurrent':
+                    completeCurrentProcess();
+                    break;
+                case 'resetAll':
+                    resetAllProcesses();
+                    break;
+            }
+            return false;
+        }
+
+        function handleNotesChange(batchId, processIndex, value) {
+            if (event) {
+                event.preventDefault();
+            }
+            updateProcessNotes(batchId, processIndex, value);
+            return false;
+        }
+
         async function loadBatchTracking() {
             const batchId = document.getElementById('trackingBatchSelect').value;
             const display = document.getElementById('trackingDisplay');
-        
+
             if (!batchId) {
                 display.classList.add('hidden');
                 return;
             }
-        
+
             display.classList.remove('hidden');
             const batches = await apiCall('/batches', 'GET');
             const batch = batches.find(b => b._id === batchId);
-        
+
             if (!batch) {
                 display.innerHTML = '<p class="text-red-500">Batch not found</p>';
                 return;
             }
-        
+
             // Batch info
             const priorityColors = { normal: 'bg-gray-100', high: 'bg-orange-100', urgent: 'bg-red-100' };
             document.getElementById('batchInfo').innerHTML = `
@@ -1207,14 +1246,14 @@
                     ${batch.customer ? `<span class="text-sm text-gray-700"><i class="fas fa-user mr-1"></i>${batch.customer}</span>` : ''}
                 </div>
             `;
-        
+
             // Progress
             const completed = batch.processes.filter(p => p.status === 'completed').length;
             const total = batch.processes.length;
             const progress = Math.round((completed / total) * 100);
             document.getElementById('overallProgressText').textContent = `${progress}%`;
             document.getElementById('overallProgressBar').style.width = `${progress}%`;
-        
+
             // Process tracking
             const trackingContainer = document.getElementById('processTracking');
             trackingContainer.innerHTML = batch.processes.map((proc, index) => {
@@ -1224,7 +1263,7 @@
                                   proc.status === 'completed' ? 'fa-check-circle text-green-500' :
                                   'fa-exclamation-circle text-red-500';
                 const statusText = proc.status.charAt(0).toUpperCase() + proc.status.slice(1).replace('inprogress', 'In Progress');
-        
+
                 return `
                     <div class="${statusClass} rounded-lg p-4 border-r-4">
                         <div class="flex justify-between items-start mb-3">
@@ -1242,21 +1281,21 @@
                         </div>
                         <div class="ml-13 space-y-3">
                             <div class="flex gap-2 flex-wrap">
-                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'pending'); return false;" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
+                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'pending')" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
                                     <i class="fas fa-clock mr-1"></i>Pending
                                 </button>
-                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'inprogress'); return false;" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
+                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'inprogress')" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
                                     <i class="fas fa-play mr-1"></i>In Progress
                                 </button>
-                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'completed'); return false;" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
+                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'completed')" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
                                     <i class="fas fa-check mr-1"></i>Completed
                                 </button>
-                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'defect'); return false;" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
+                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'defect')" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
                                     <i class="fas fa-exclamation mr-1"></i>Defect
                                 </button>
                             </div>
                             <input type="text" placeholder="Add notes..." value="${proc.notes || ''}" 
-                                onchange="event.preventDefault(); updateProcessNotes('${batch._id}', ${index}, this.value); return false;"
+                                onchange="handleNotesChange('${batch._id}', ${index}, this.value)"
                                 class="border border-gray-300 rounded px-4 py-2 text-sm w-full" />
                             <div class="text-xs text-gray-500 flex gap-4">
                                 ${proc.startTime ? `<span><i class="fas fa-play mr-1"></i>Started: ${new Date(proc.startTime).toLocaleString()}</span>` : ''}
@@ -1266,7 +1305,7 @@
                     </div>
                 `;
             }).join('');
-        
+
             renderBatchSummary();
         }
 
@@ -1281,13 +1320,13 @@
                 }
                 
                 const proc = batch.processes[processIndex];
-        
+
                 const updates = {
                     status: status,
                     endTime: status === 'completed' ? new Date().toISOString() : (status === 'pending' ? null : proc.endTime),
                     startTime: status === 'inprogress' ? (proc.startTime || new Date().toISOString()) : (status === 'pending' ? null : proc.startTime)
                 };
-        
+
                 // Use query parameters instead of path parameters
                 await apiCall(`/batches?id=${batchId}&processIndex=${processIndex}&action=updateProcess`, 'PUT', updates);
                 
@@ -1314,8 +1353,19 @@
 
         async function startFirstPendingProcess() {
             const batchId = document.getElementById('trackingBatchSelect').value;
+            if (!batchId) {
+                showToast('Please select a batch first', 'error');
+                return;
+            }
+            
             const batches = await apiCall('/batches', 'GET');
             const batch = batches.find(b => b._id === batchId);
+            
+            if (!batch) {
+                showToast('Batch not found', 'error');
+                return;
+            }
+            
             const pendingIndex = batch.processes.findIndex(p => p.status === 'pending');
             
             if (pendingIndex >= 0) {
@@ -1327,8 +1377,19 @@
 
         async function completeCurrentProcess() {
             const batchId = document.getElementById('trackingBatchSelect').value;
+            if (!batchId) {
+                showToast('Please select a batch first', 'error');
+                return;
+            }
+            
             const batches = await apiCall('/batches', 'GET');
             const batch = batches.find(b => b._id === batchId);
+            
+            if (!batch) {
+                showToast('Batch not found', 'error');
+                return;
+            }
+            
             const inProgressIndex = batch.processes.findIndex(p => p.status === 'inprogress');
             
             if (inProgressIndex >= 0) {
@@ -1337,7 +1398,9 @@
                 // Auto-start next process
                 const nextIndex = batch.processes.findIndex((p, i) => i > inProgressIndex && p.status === 'pending');
                 if (nextIndex >= 0) {
-                    await updateProcessStatus(batchId, nextIndex, 'inprogress');
+                    setTimeout(async () => {
+                        await updateProcessStatus(batchId, nextIndex, 'inprogress');
+                    }, 500);
                 }
             } else {
                 showToast('No process in progress!', 'info');
@@ -1348,8 +1411,18 @@
             if (!confirm('Reset all processes to pending?')) return;
             
             const batchId = document.getElementById('trackingBatchSelect').value;
+            if (!batchId) {
+                showToast('Please select a batch first', 'error');
+                return;
+            }
+            
             const batches = await apiCall('/batches', 'GET');
             const batch = batches.find(b => b._id === batchId);
+            
+            if (!batch) {
+                showToast('Batch not found', 'error');
+                return;
+            }
             
             for (let i = 0; i < batch.processes.length; i++) {
                 await updateProcessStatus(batchId, i, 'pending');
@@ -1540,7 +1613,7 @@
                         // Import processes
                         if (imported.processes) {
                             for (const proc of imported.processes) {
-                                delete proc._id; // Let MongoDB assign new IDs
+                                delete proc._id;
                                 await apiCall('/processes', 'POST', proc);
                             }
                         }
@@ -1587,11 +1660,10 @@
             const apiOnline = await checkAPIStatus();
             if (apiOnline) {
                 await updateStats();
-                await renderProcessesList(); // Add this line - load processes on startup
+                await renderProcessesList();
             } else {
-                // Still show stats if using localStorage
                 await updateStats();
-                await renderProcessesList(); // Add this line
+                await renderProcessesList();
             }
         });
     </script>
