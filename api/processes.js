@@ -28,6 +28,24 @@ async function connectToDatabase() {
   return { client, db };
 }
 
+// Helper to parse request body
+async function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,14 +66,14 @@ module.exports = async (req, res) => {
       res.status(200).json(processes);
     } 
     else if (req.method === 'POST') {
-      const process = JSON.parse(req.body);
+      const process = await parseBody(req); // Changed from JSON.parse(req.body)
       process.createdAt = new Date();
       const result = await collection.insertOne(process);
       res.status(201).json({ ...process, _id: result.insertedId });
     }
     else if (req.method === 'PUT') {
       const { id } = req.query;
-      const updates = JSON.parse(req.body);
+      const updates = await parseBody(req); // Changed from JSON.parse(req.body)
       await collection.updateOne(
         { _id: new ObjectId(id) },
         { $set: updates }
