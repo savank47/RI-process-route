@@ -469,8 +469,7 @@
             headers: {
               'Content-Type': 'application/json',
             },
-            mode: 'cors',
-            signal: AbortSignal.timeout ? AbortSignal.timeout(10000) : undefined // 10 second timeout
+            mode: 'cors'
           };
           
           if (data) {
@@ -482,11 +481,18 @@
             
             if (!response.ok) {
               let errorData;
+              const contentType = response.headers.get('content-type');
+              
               try {
-                errorData = await response.json();
-              } catch {
-                errorData = await response.text();
+                if (contentType && contentType.includes('application/json')) {
+                  errorData = await response.json();
+                } else {
+                  errorData = await response.text();
+                }
+              } catch (parseError) {
+                errorData = `Status: ${response.status}`;
               }
+              
               throw new Error(`HTTP error! status: ${response.status}, details: ${JSON.stringify(errorData)}`);
             }
             
@@ -494,7 +500,12 @@
             if (contentType && contentType.includes('application/json')) {
               return await response.json();
             } else {
-              return await response.text();
+              const text = await response.text();
+              try {
+                return JSON.parse(text);
+              } catch {
+                return text;
+              }
             }
           } catch (error) {
             console.error('API call failed:', error.message);
@@ -1255,23 +1266,41 @@
         }
 
         async function updateProcessStatus(batchId, processIndex, status) {
-            const batches = await apiCall('/batches', 'GET');
-            const batch = batches.find(b => b._id === batchId);
-            const proc = batch.processes[processIndex];
-
-            const updates = {
-                status: status,
-                endTime: status === 'completed' ? new Date().toISOString() : (status === 'pending' ? null : proc.endTime),
-                startTime: status === 'inprogress' ? (proc.startTime || new Date().toISOString()) : (status === 'pending' ? null : proc.startTime)
-            };
-
-            await apiCall(`/batches/${batchId}/process/${processIndex}`, 'PUT', updates);
-            await loadBatchTracking();
-            await renderBatchesList();
+            try {
+                const batches = await apiCall('/batches', 'GET');
+                const batch = batches.find(b => b._id === batchId);
+                
+                if (!batch) {
+                    showToast('Batch not found', 'error');
+                    return;
+                }
+                
+                const proc = batch.processes[processIndex];
+        
+                const updates = {
+                    status: status,
+                    endTime: status === 'completed' ? new Date().toISOString() : (status === 'pending' ? null : proc.endTime),
+                    startTime: status === 'inprogress' ? (proc.startTime || new Date().toISOString()) : (status === 'pending' ? null : proc.startTime)
+                };
+        
+                // Use query parameters instead of path parameters
+                await apiCall(`/batches?id=${batchId}&processIndex=${processIndex}&action=updateProcess`, 'PUT', updates);
+                await loadBatchTracking();
+                await renderBatchesList();
+                showToast('Process status updated', 'success');
+            } catch (error) {
+                console.error('Failed to update process status:', error);
+                showToast('Failed to update status', 'error');
+            }
         }
 
         async function updateProcessNotes(batchId, processIndex, notes) {
-            await apiCall(`/batches/${batchId}/process/${processIndex}`, 'PUT', { notes });
+            try {
+                await apiCall(`/batches?id=${batchId}&processIndex=${processIndex}&action=updateProcess`, 'PUT', { notes });
+                showToast('Notes saved', 'success');
+            } catch (error) {
+                console.error('Failed to update notes:', error);
+            }
         }
 
         async function startFirstPendingProcess() {
