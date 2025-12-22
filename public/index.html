@@ -555,9 +555,13 @@
             document.getElementById(`content-${tabName}`).classList.remove('hidden');
             document.getElementById(`tab-${tabName}`).classList.add('tab-active');
             document.getElementById(`tab-${tabName}`).classList.remove('text-gray-600');
-
-            if (tabName === 'items') {
+        
+            // Load data when switching tabs
+            if (tabName === 'processes') {
+                renderProcessesList(); // Add this line
+            } else if (tabName === 'items') {
                 renderAvailableProcessesForItem();
+                renderItemsList();
             } else if (tabName === 'batches') {
                 updateBatchItemSelect();
                 renderBatchesList();
@@ -602,30 +606,36 @@
             const name = document.getElementById('processName').value.trim();
             const code = document.getElementById('processCode').value.trim();
             const description = document.getElementById('processDescription').value.trim();
-
+        
             if (!name || !code) {
                 showToast('Please enter process name and code', 'error');
                 return;
             }
-
+        
             const process = {
                 name,
                 code,
                 description,
                 color: selectedColor
             };
-
+        
             try {
-                await apiCall('/processes', 'POST', process);
+                console.log('Adding process:', process);
+                const result = await apiCall('/processes', 'POST', process);
+                console.log('Process added:', result);
+                
+                // Clear form
                 document.getElementById('processName').value = '';
                 document.getElementById('processCode').value = '';
                 document.getElementById('processDescription').value = '';
                 
-                renderProcessesList();
-                updateStats();
+                // Re-render the list
+                await renderProcessesList();
+                await updateStats();
                 showToast(`Process "${name}" added to library!`);
             } catch (error) {
-                showToast('Failed to add process', 'error');
+                console.error('Failed to add process:', error);
+                showToast('Failed to add process: ' + error.message, 'error');
             }
         }
 
@@ -642,16 +652,22 @@
             { name: 'Dispatch', code: 'DSP-001', description: 'Shipping and delivery', color: 'pink' }
         ];
 
-        async function loadDefaultProcesses() {
+         async function loadDefaultProcesses() {
             if (!confirm('This will add default processes to your library. Continue?')) return;
             
-            for (const proc of defaultProcesses) {
-                await apiCall('/processes', 'POST', proc);
+            try {
+                for (const proc of defaultProcesses) {
+                    console.log('Loading default process:', proc.name);
+                    await apiCall('/processes', 'POST', proc);
+                }
+                
+                await renderProcessesList();
+                await updateStats();
+                showToast('Default processes loaded!');
+            } catch (error) {
+                console.error('Failed to load default processes:', error);
+                showToast('Failed to load default processes: ' + error.message, 'error');
             }
-            
-            renderProcessesList();
-            updateStats();
-            showToast('Default processes loaded!');
         }
 
         async function deleteProcess(processId) {
@@ -689,38 +705,49 @@
             showToast('Process updated!');
         }
 
-        async function renderProcessesList() {
-            const container = document.getElementById('processesList');
-            const processes = await apiCall('/processes', 'GET');
+            async function renderProcessesList() {
+                const container = document.getElementById('processesList');
+                
+                try {
+                    const processes = await apiCall('/processes', 'GET');
+                    
+                    console.log('Rendering processes:', processes); // Debug log
+                    
+                    if (!processes || processes.length === 0) {
+                        container.innerHTML = '<p class="text-gray-500 text-center py-8 w-full">No processes in library. Add your first process above or load default processes.</p>';
+                        return;
+                    }
             
-            if (processes.length === 0) {
-                container.innerHTML = '<p class="text-gray-500 text-center py-8 w-full">No processes in library. Add your first process above or load default processes.</p>';
-                return;
+                    const colorClasses = {
+                        gray: 'bg-gray-100 text-gray-800 border-gray-300',
+                        red: 'bg-red-100 text-red-800 border-red-300',
+                        orange: 'bg-orange-100 text-orange-800 border-orange-300',
+                        amber: 'bg-amber-100 text-amber-800 border-amber-300',
+                        green: 'bg-green-100 text-green-800 border-green-300',
+                        teal: 'bg-teal-100 text-teal-800 border-teal-300',
+                        blue: 'bg-blue-100 text-blue-800 border-blue-300',
+                        indigo: 'bg-indigo-100 text-indigo-800 border-indigo-300',
+                        purple: 'bg-purple-100 text-purple-800 border-purple-300',
+                        pink: 'bg-pink-100 text-pink-800 border-pink-300'
+                    };
+            
+                    container.innerHTML = processes.map(proc => `
+                        <div class="process-chip ${colorClasses[proc.color] || colorClasses.blue} border-2 rounded-lg px-4 py-2 flex items-center gap-2">
+                            <span class="font-semibold">${proc.name}</span>
+                            <span class="text-xs opacity-75">${proc.code}</span>
+                            ${proc.description ? `<span class="text-xs opacity-60 ml-1">(${proc.description})</span>` : ''}
+                            <button onclick="deleteProcess('${proc._id}')" class="ml-auto opacity-50 hover:opacity-100 transition" title="Delete process">
+                                <i class="fas fa-trash text-sm"></i>
+                            </button>
+                        </div>
+                    `).join('');
+                    
+                    console.log('Processes rendered successfully');
+                } catch (error) {
+                    console.error('Error rendering processes:', error);
+                    container.innerHTML = '<p class="text-red-500 text-center py-8">Error loading processes. Check console for details.</p>';
+                }
             }
-
-            const colorClasses = {
-                gray: 'bg-gray-100 text-gray-800 border-gray-300',
-                red: 'bg-red-100 text-red-800 border-red-300',
-                orange: 'bg-orange-100 text-orange-800 border-orange-300',
-                amber: 'bg-amber-100 text-amber-800 border-amber-300',
-                green: 'bg-green-100 text-green-800 border-green-300',
-                teal: 'bg-teal-100 text-teal-800 border-teal-300',
-                blue: 'bg-blue-100 text-blue-800 border-blue-300',
-                indigo: 'bg-indigo-100 text-indigo-800 border-indigo-300',
-                purple: 'bg-purple-100 text-purple-800 border-purple-300',
-                pink: 'bg-pink-100 text-pink-800 border-pink-300'
-            };
-
-            container.innerHTML = processes.map(proc => `
-                <div class="process-chip ${colorClasses[proc.color]} border-2 rounded-lg px-4 py-2 flex items-center gap-2">
-                    <span class="font-semibold">${proc.name}</span>
-                    <span class="text-xs opacity-75">${proc.code}</span>
-                    <button onclick="deleteProcess('${proc._id}')" class="ml-2 opacity-50 hover:opacity-100 transition">
-                        <i class="fas fa-trash text-sm"></i>
-                    </button>
-                </div>
-            `).join('');
-        }
 
         // ============ ITEMS MANAGEMENT ============
         async function renderAvailableProcessesForItem() {
@@ -1522,9 +1549,11 @@
             const apiOnline = await checkAPIStatus();
             if (apiOnline) {
                 await updateStats();
+                await renderProcessesList(); // Add this line - load processes on startup
             } else {
                 // Still show stats if using localStorage
                 await updateStats();
+                await renderProcessesList(); // Add this line
             }
         });
     </script>
