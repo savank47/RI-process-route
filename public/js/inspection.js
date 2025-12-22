@@ -1,6 +1,33 @@
-// Inspection Reports Module - NEW FEATURE
+// ========================================
+// FRONTEND JAVASCRIPT MODULE
+// File: js/inspection.js
+// Purpose: Inspection reports and quality control
+// Runs on: Browser (Client-side)
+// ========================================
 
 class InspectionManager {
+    // NEW: Render Inspection Reports Tab
+    static async renderTab() {
+        await this.updateBatchSelect();
+        await this.renderAllReports();
+    }
+
+    static async updateBatchSelect() {
+        const select = document.getElementById('inspectionBatchSelect');
+        const filterSelect = document.getElementById('inspectionFilterBatch');
+        const batches = await api.getBatches();
+        
+        const options = '<option value="">-- Select Batch --</option>' + 
+            batches.map(batch => `<option value="${batch._id}">${batch.batchNumber} - ${batch.itemName}</option>`).join('');
+        
+        select.innerHTML = options;
+        
+        if (filterSelect) {
+            filterSelect.innerHTML = '<option value="all">All Batches</option>' + 
+                batches.map(batch => `<option value="${batch._id}">${batch.batchNumber}</option>`).join('');
+        }
+    }
+
     static async generateReport() {
         const batchId = document.getElementById('trackingBatchSelect').value;
         if (!batchId) {
@@ -240,15 +267,8 @@ class InspectionManager {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-}
 
-    // NEW: Render Inspection Reports Tab
-    static async renderTab() {
-        await this.updateBatchSelect();
-        await this.renderAllReports();
-    }
-
-    static async updateBatchSelect() {
+    static async previewDimensions() {
         const select = document.getElementById('inspectionBatchSelect');
         const filterSelect = document.getElementById('inspectionFilterBatch');
         const batches = await api.getBatches();
@@ -514,6 +534,85 @@ class InspectionManager {
 
     static async filterReports() {
         await this.renderAllReports();
+    }
+
+    static async saveInspection() {
+        const batchId = document.getElementById('trackingBatchSelect').value;
+        const batches = await api.getBatches();
+        const batch = batches.find(b => b._id === batchId);
+        
+        if (!batch) return;
+
+        // Get inspector name from modal
+        const inspectorName = document.getElementById('modalInspectorName').value.trim();
+        if (!inspectorName) {
+            UI.showToast('Please enter inspector name', 'error');
+            return;
+        }
+
+        const inspectorNotes = document.getElementById('inspectorNotes').value.trim();
+        
+        // Collect actual measurements
+        const measurements = batch.itemDimensions.map((dim, index) => {
+            const actualInput = document.getElementById(`actual-${index}`);
+            const actual = parseFloat(actualInput.value);
+            
+            let status = 'not_measured';
+            if (!isNaN(actual)) {
+                if (actual >= dim.minValue && actual <= dim.maxValue) {
+                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
+                    if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
+                        status = 'warning';
+                    } else {
+                        status = 'pass';
+                    }
+                } else {
+                    status = 'fail';
+                }
+            }
+
+            return {
+                name: dim.name,
+                target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
+                actual: isNaN(actual) ? null : actual,
+                unit: dim.unit,
+                status: status
+            };
+        });
+
+        const inspection = {
+            timestamp: new Date().toISOString(),
+            inspector: inspectorName,
+            measurements: measurements,
+            notes: inspectorNotes,
+            overallStatus: measurements.some(m => m.status === 'fail') ? 'rejected' : 
+                          measurements.some(m => m.status === 'warning') ? 'conditional' : 'approved'
+        };
+
+        // Add inspection to batch
+        if (!batch.inspections) batch.inspections = [];
+        batch.inspections.push(inspection);
+
+        try {
+            await api.updateBatch(batchId, { inspections: batch.inspections });
+            this.closeModal();
+            UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()}`, 
+                        inspection.overallStatus === 'approved' ? 'success' : 'info');
+            
+            // Reload tracking to show inspection data
+            await TrackingManager.load();
+        } catch (error) {
+            console.error('Failed to save inspection:', error);
+            UI.showToast('Failed to save inspection', 'error');
+        }
+    }
+
+    static closeModal() {
+        const modal = document.getElementById('inspectionModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+        document.getElementById('modalInspectorName').value = '';
+        document.getElementById('inspectorNotes').value = '';
     }
 }
 
