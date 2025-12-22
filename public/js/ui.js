@@ -53,7 +53,7 @@ class UI {
 
     // Tab navigation
     static showTab(tabName) {
-        const tabs = ['processes', 'items', 'batches', 'tracking', 'dashboard'];
+        const tabs = ['processes', 'items', 'batches', 'tracking', 'inspections', 'dashboard'];
         tabs.forEach(tab => {
             document.getElementById(`content-${tab}`).classList.add('hidden');
             document.getElementById(`tab-${tab}`).classList.remove('tab-active');
@@ -75,6 +75,8 @@ class UI {
         } else if (tabName === 'tracking') {
             TrackingManager.updateBatchSelect();
             TrackingManager.renderSummary();
+        } else if (tabName === 'inspections') {
+            InspectionManager.renderTab();
         } else if (tabName === 'dashboard') {
             DashboardManager.render();
         }
