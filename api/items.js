@@ -21,6 +21,24 @@ async function connectToDatabase() {
   return { client, db };
 }
 
+// Helper to parse request body
+async function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -45,13 +63,7 @@ module.exports = async (req, res) => {
     } 
     else if (req.method === 'POST') {
       console.log('Creating new item...');
-      let item;
-      try {
-        item = JSON.parse(req.body);
-      } catch (e) {
-        console.error('Failed to parse request body:', e);
-        return res.status(400).json({ error: 'Invalid JSON in request body' });
-      }
+      const item = await parseBody(req); // Changed this line
       
       console.log('Item data:', item);
       
@@ -82,7 +94,7 @@ module.exports = async (req, res) => {
     console.error('API Error:', error);
     res.status(500).json({ 
       error: error.message,
-      stack: error.stack
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
