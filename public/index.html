@@ -98,6 +98,9 @@
                     <button onclick="showTab('tracking')" id="tab-tracking" class="py-4 px-4 text-sm font-medium text-gray-600 hover:text-blue-600 transition whitespace-nowrap">
                         <i class="fas fa-tasks mr-2"></i>Batch Tracking
                     </button>
+                    <button onclick="showTab('inspections')" id="tab-inspections" class="py-4 px-4 text-sm font-medium text-gray-600 hover:text-blue-600 transition whitespace-nowrap">
+                        <i class="fas fa-clipboard-check mr-2"></i>Inspection Reports
+                    </button>
                     <button onclick="showTab('dashboard')" id="tab-dashboard" class="py-4 px-4 text-sm font-medium text-gray-600 hover:text-blue-600 transition whitespace-nowrap">
                         <i class="fas fa-chart-line mr-2"></i>Dashboard
                     </button>
@@ -330,6 +333,69 @@
                 <div class="bg-white rounded-lg shadow-md p-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-list-alt mr-2 text-purple-600"></i>All Batches Summary</h2>
                     <div id="batchSummary" class="space-y-3"></div>
+                </div>
+            </div>
+
+            <!-- INSPECTION REPORTS TAB -->
+            <div id="content-inspections" class="hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-clipboard-check mr-2 text-purple-600"></i>Create New Inspection Report</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Select Batch:</label>
+                            <select id="inspectionBatchSelect" onchange="previewInspectionDimensions()" class="border border-gray-300 rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-purple-500">
+                                <option value="">-- Select Batch --</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Inspector Name:</label>
+                            <input type="text" id="inspectorName" placeholder="Enter inspector name" class="border border-gray-300 rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    
+                    <div id="inspectionFormPreview" class="hidden">
+                        <div class="mb-4 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                            <h4 class="font-semibold text-gray-800 mb-2"><i class="fas fa-info-circle mr-2"></i>Batch Information:</h4>
+                            <div id="inspectionFormBatchInfo" class="text-sm text-gray-700"></div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h4 class="font-semibold text-gray-800 mb-3"><i class="fas fa-ruler-combined mr-2"></i>Dimension Measurements:</h4>
+                            <div id="inspectionFormDimensions" class="space-y-3"></div>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Inspector Notes:</label>
+                            <textarea id="inspectionFormNotes" rows="3" class="border border-gray-300 rounded-lg px-4 py-2 w-full" placeholder="Add observations, comments, or issues..."></textarea>
+                        </div>
+                        
+                        <div class="flex gap-3">
+                            <button onclick="saveInspectionFromTab()" class="bg-purple-600 hover:bg-purple-700 text-white font-medium px-6 py-3 rounded-lg transition shadow-md">
+                                <i class="fas fa-save mr-2"></i>Save Inspection Report
+                            </button>
+                            <button onclick="clearInspectionForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-3 rounded-lg transition shadow-md">
+                                <i class="fas fa-times mr-2"></i>Clear Form
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h2 class="text-xl font-bold text-gray-800"><i class="fas fa-history mr-2 text-purple-600"></i>All Inspection Reports</h2>
+                        <div class="flex gap-2">
+                            <select id="inspectionFilterBatch" onchange="filterInspectionReports()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option value="all">All Batches</option>
+                            </select>
+                            <select id="inspectionFilterStatus" onchange="filterInspectionReports()" class="border border-gray-300 rounded-lg px-3 py-2 text-sm">
+                                <option value="all">All Results</option>
+                                <option value="approved">Approved Only</option>
+                                <option value="rejected">Rejected Only</option>
+                                <option value="conditional">Conditional Only</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="inspectionReportsList" class="space-y-4"></div>
                 </div>
             </div>
 
