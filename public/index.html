@@ -321,13 +321,13 @@
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold text-gray-700 mb-2"><i class="fas fa-bolt mr-2"></i>Quick Actions:</h4>
                             <div class="flex gap-2 flex-wrap">
-                                <button type="button" onclick="handleQuickAction('startNext')" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction(event, 'startNext')" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
                                     <i class="fas fa-play mr-1"></i>Start Next Process
                                 </button>
-                                <button type="button" onclick="handleQuickAction('completeCurrent')" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction(event, 'completeCurrent')" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
                                     <i class="fas fa-check mr-1"></i>Complete Current
                                 </button>
-                                <button type="button" onclick="handleQuickAction('resetAll')" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
+                                <button type="button" onclick="handleQuickAction(event, 'resetAll')" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
                                     <i class="fas fa-redo mr-1"></i>Reset All
                                 </button>
                             </div>
@@ -1180,20 +1180,16 @@
         }
 
         // Wrapper functions to ensure no page reload
-        function handleStatusChange(batchId, processIndex, status) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
+        function handleStatusChange(e, batchId, processIndex, status) {
+            e.preventDefault();
+            e.stopPropagation();
             updateProcessStatus(batchId, processIndex, status);
             return false;
         }
 
-        function handleQuickAction(action) {
-            if (event) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
+        function handleQuickAction(e, action) {
+            e.preventDefault();
+            e.stopPropagation();
             
             switch(action) {
                 case 'startNext':
@@ -1209,10 +1205,8 @@
             return false;
         }
 
-        function handleNotesChange(batchId, processIndex, value) {
-            if (event) {
-                event.preventDefault();
-            }
+        function handleNotesChange(e, batchId, processIndex, value) {
+            e.preventDefault();
             updateProcessNotes(batchId, processIndex, value);
             return false;
         }
@@ -1281,21 +1275,21 @@
                         </div>
                         <div class="ml-13 space-y-3">
                             <div class="flex gap-2 flex-wrap">
-                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'pending')" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
+                                <button type="button" onclick="handleStatusChange(event, '${batch._id}', ${index}, 'pending')" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
                                     <i class="fas fa-clock mr-1"></i>Pending
                                 </button>
-                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'inprogress')" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
+                                <button type="button" onclick="handleStatusChange(event, '${batch._id}', ${index}, 'inprogress')" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
                                     <i class="fas fa-play mr-1"></i>In Progress
                                 </button>
-                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'completed')" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
+                                <button type="button" onclick="handleStatusChange(event, '${batch._id}', ${index}, 'completed')" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
                                     <i class="fas fa-check mr-1"></i>Completed
                                 </button>
-                                <button type="button" onclick="handleStatusChange('${batch._id}', ${index}, 'defect')" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
+                                <button type="button" onclick="handleStatusChange(event, '${batch._id}', ${index}, 'defect')" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
                                     <i class="fas fa-exclamation mr-1"></i>Defect
                                 </button>
                             </div>
                             <input type="text" placeholder="Add notes..." value="${proc.notes || ''}" 
-                                onchange="handleNotesChange('${batch._id}', ${index}, this.value)"
+                                onchange="handleNotesChange(event, '${batch._id}', ${index}, this.value)"
                                 class="border border-gray-300 rounded px-4 py-2 text-sm w-full" />
                             <div class="text-xs text-gray-500 flex gap-4">
                                 ${proc.startTime ? `<span><i class="fas fa-play mr-1"></i>Started: ${new Date(proc.startTime).toLocaleString()}</span>` : ''}
