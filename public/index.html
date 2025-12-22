@@ -321,13 +321,13 @@
                         <div class="mb-6 p-4 bg-gray-50 rounded-lg">
                             <h4 class="font-semibold text-gray-700 mb-2"><i class="fas fa-bolt mr-2"></i>Quick Actions:</h4>
                             <div class="flex gap-2 flex-wrap">
-                                <button onclick="startFirstPendingProcess()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
+                                <button onclick="event.preventDefault(); startFirstPendingProcess()" class="px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded-lg text-sm transition">
                                     <i class="fas fa-play mr-1"></i>Start Next Process
                                 </button>
-                                <button onclick="completeCurrentProcess()" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
+                                <button onclick="event.preventDefault(); completeCurrentProcess()" class="px-4 py-2 bg-green-100 hover:bg-green-200 text-green-800 rounded-lg text-sm transition">
                                     <i class="fas fa-check mr-1"></i>Complete Current
                                 </button>
-                                <button onclick="resetAllProcesses()" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
+                                <button onclick="event.preventDefault(); resetAllProcesses()" class="px-4 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-lg text-sm transition">
                                     <i class="fas fa-redo mr-1"></i>Reset All
                                 </button>
                             </div>
@@ -1181,16 +1181,21 @@
         async function loadBatchTracking() {
             const batchId = document.getElementById('trackingBatchSelect').value;
             const display = document.getElementById('trackingDisplay');
-
+        
             if (!batchId) {
                 display.classList.add('hidden');
                 return;
             }
-
+        
             display.classList.remove('hidden');
             const batches = await apiCall('/batches', 'GET');
             const batch = batches.find(b => b._id === batchId);
-
+        
+            if (!batch) {
+                display.innerHTML = '<p class="text-red-500">Batch not found</p>';
+                return;
+            }
+        
             // Batch info
             const priorityColors = { normal: 'bg-gray-100', high: 'bg-orange-100', urgent: 'bg-red-100' };
             document.getElementById('batchInfo').innerHTML = `
@@ -1202,14 +1207,14 @@
                     ${batch.customer ? `<span class="text-sm text-gray-700"><i class="fas fa-user mr-1"></i>${batch.customer}</span>` : ''}
                 </div>
             `;
-
+        
             // Progress
             const completed = batch.processes.filter(p => p.status === 'completed').length;
             const total = batch.processes.length;
             const progress = Math.round((completed / total) * 100);
             document.getElementById('overallProgressText').textContent = `${progress}%`;
             document.getElementById('overallProgressBar').style.width = `${progress}%`;
-
+        
             // Process tracking
             const trackingContainer = document.getElementById('processTracking');
             trackingContainer.innerHTML = batch.processes.map((proc, index) => {
@@ -1218,8 +1223,8 @@
                                   proc.status === 'inprogress' ? 'fa-spinner fa-spin text-blue-500' :
                                   proc.status === 'completed' ? 'fa-check-circle text-green-500' :
                                   'fa-exclamation-circle text-red-500';
-                const statusText = proc.status.charAt(0).toUpperCase() + proc.status.slice(1);
-
+                const statusText = proc.status.charAt(0).toUpperCase() + proc.status.slice(1).replace('inprogress', 'In Progress');
+        
                 return `
                     <div class="${statusClass} rounded-lg p-4 border-r-4">
                         <div class="flex justify-between items-start mb-3">
@@ -1237,21 +1242,21 @@
                         </div>
                         <div class="ml-13 space-y-3">
                             <div class="flex gap-2 flex-wrap">
-                                <button onclick="updateProcessStatus('${batch._id}', ${index}, 'pending')" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
+                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'pending'); return false;" class="px-4 py-2 rounded text-sm bg-yellow-100 hover:bg-yellow-200 text-yellow-800 transition">
                                     <i class="fas fa-clock mr-1"></i>Pending
                                 </button>
-                                <button onclick="updateProcessStatus('${batch._id}', ${index}, 'inprogress')" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
+                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'inprogress'); return false;" class="px-4 py-2 rounded text-sm bg-blue-100 hover:bg-blue-200 text-blue-800 transition">
                                     <i class="fas fa-play mr-1"></i>In Progress
                                 </button>
-                                <button onclick="updateProcessStatus('${batch._id}', ${index}, 'completed')" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
+                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'completed'); return false;" class="px-4 py-2 rounded text-sm bg-green-100 hover:bg-green-200 text-green-800 transition">
                                     <i class="fas fa-check mr-1"></i>Completed
                                 </button>
-                                <button onclick="updateProcessStatus('${batch._id}', ${index}, 'defect')" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
+                                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); updateProcessStatus('${batch._id}', ${index}, 'defect'); return false;" class="px-4 py-2 rounded text-sm bg-red-100 hover:bg-red-200 text-red-800 transition">
                                     <i class="fas fa-exclamation mr-1"></i>Defect
                                 </button>
                             </div>
                             <input type="text" placeholder="Add notes..." value="${proc.notes || ''}" 
-                                onchange="updateProcessNotes('${batch._id}', ${index}, this.value)"
+                                onchange="event.preventDefault(); updateProcessNotes('${batch._id}', ${index}, this.value); return false;"
                                 class="border border-gray-300 rounded px-4 py-2 text-sm w-full" />
                             <div class="text-xs text-gray-500 flex gap-4">
                                 ${proc.startTime ? `<span><i class="fas fa-play mr-1"></i>Started: ${new Date(proc.startTime).toLocaleString()}</span>` : ''}
@@ -1261,7 +1266,7 @@
                     </div>
                 `;
             }).join('');
-
+        
             renderBatchSummary();
         }
 
@@ -1285,8 +1290,12 @@
         
                 // Use query parameters instead of path parameters
                 await apiCall(`/batches?id=${batchId}&processIndex=${processIndex}&action=updateProcess`, 'PUT', updates);
+                
+                // Re-render only the tracking display, don't reload the page
                 await loadBatchTracking();
                 await renderBatchesList();
+                await updateStats();
+                
                 showToast('Process status updated', 'success');
             } catch (error) {
                 console.error('Failed to update process status:', error);
