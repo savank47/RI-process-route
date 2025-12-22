@@ -28,6 +28,24 @@ async function connectToDatabase() {
   return { client, db };
 }
 
+// Helper to parse request body
+async function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -48,9 +66,18 @@ module.exports = async (req, res) => {
       res.status(200).json(items);
     } 
     else if (req.method === 'POST') {
-      const item = JSON.parse(req.body);
+      console.log('Creating new item...');
+      const item = await parseBody(req); // Changed from JSON.parse(req.body)
+      
+      console.log('Item data received:', item);
+      
+      if (!item.name || !item.code) {
+        return res.status(400).json({ error: 'Item name and code are required' });
+      }
+      
       item.createdAt = new Date();
       const result = await collection.insertOne(item);
+      console.log('Item created with ID:', result.insertedId);
       res.status(201).json({ ...item, _id: result.insertedId });
     }
     else if (req.method === 'DELETE') {
