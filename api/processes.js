@@ -1,7 +1,7 @@
-const { MongoClient, ObjectId } = require("mongodb");
+const { MongoClient, ObjectId } = require('mongodb');
+require('dotenv').config();
 
 const MONGODB_URI = process.env.MONGODB_URI;
-
 let cachedClient = null;
 let cachedDb = null;
 
@@ -10,87 +10,87 @@ async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb };
   }
 
-  if (!MONGODB_URI) {
-    throw new Error("MONGODB_URI is not defined");
-  }
+  const client = await MongoClient.connect(MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  });
 
-  const client = await MongoClient.connect(MONGODB_URI);
-  const db = client.db("auto_parts_tracker");
-
+  const db = client.db('auto_parts_tracker');
   cachedClient = client;
   cachedDb = db;
-
   return { client, db };
 }
 
-module.exports = async (req, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,POST,PUT,DELETE,OPTIONS"
-  );
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+// Helper to parse request body
+async function parseBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk.toString();
+    });
+    req.on('end', () => {
+      try {
+        resolve(body ? JSON.parse(body) : {});
+      } catch (e) {
+        reject(new Error('Invalid JSON'));
+      }
+    });
+    req.on('error', reject);
+  });
+}
 
-  if (req.method === "OPTIONS") {
-    return res.status(200).end();
+module.exports = async (req, res) => {
+  // Enable CORS
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
   }
 
   try {
     const { db } = await connectToDatabase();
-    const collection = db.collection("processes");
+    const collection = db.collection('processes');
 
-    if (req.method === "GET") {
-      const processes = await collection
-        .find({})
-        .sort({ createdAt: -1 })
-        .toArray();
-
-      return res.status(200).json(processes);
+    if (req.method === 'GET') {
+      const processes = await collection.find({}).sort({ createdAt: -1 }).toArray();
+      res.status(200).json(processes);
+    } 
+    else if (req.method === 'POST') {
+      const process = await parseBody(req); // Changed this line
+      process.createdAt = new Date();
+      const result = await collection.insertOne(process);
+      res.status(201).json({ ...process, _id: result.insertedId });
     }
-
-    if (req.method === "POST") {
-      const body =
-        typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-
-      body.createdAt = new Date();
-      const result = await collection.insertOne(body);
-
-      return res.status(201).json({ ...body, _id: result.insertedId });
-    }
-
-    if (req.method === "PUT") {
+    else if (req.method === 'PUT') {
       const { id } = req.query;
-      const updates =
-        typeof req.body === "string" ? JSON.parse(req.body) : req.body;
-
+      const updates = await parseBody(req); // Changed this line
       await collection.updateOne(
         { _id: new ObjectId(id) },
         { $set: updates }
       );
-
-      return res.status(200).json({ message: "Process updated" });
+      res.status(200).json({ message: 'Process updated' });
     }
-
-    if (req.method === "DELETE") {
+    else if (req.method === 'DELETE') {
       const { id } = req.query;
-
       await collection.deleteOne({ _id: new ObjectId(id) });
-
-      const itemsCollection = db.collection("items");
+      
+      // Remove from items
+      const itemsCollection = db.collection('items');
       await itemsCollection.updateMany(
-        { "processRoute.id": id },
-        { $pull: { processRoute: { id } } }
+        { 'processRoute.id': id },
+        { $pull: { processRoute: { id: id } } }
       );
-
-      return res.status(200).json({ message: "Process deleted" });
+      
+      res.status(200).json({ message: 'Process deleted' });
     }
-
-    return res.status(405).json({ error: "Method not allowed" });
+    else {
+      res.status(405).json({ error: 'Method not allowed' });
+    }
   } catch (error) {
-    console.error("Processes API error:", error);
-    return res.status(500).json({
-      error: "Internal Server Error",
-      details: error.message,
-    });
+    console.error('API Error:', error);
+    res.status(500).json({ error: error.message });
   }
 };
