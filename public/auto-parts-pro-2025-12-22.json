@@ -1,0 +1,302 @@
+{
+  "processes": [
+    {
+      "_id": "6948eefcb418d37705bc4796",
+      "name": "Heat Treatment",
+      "code": "HT-01",
+      "description": "",
+      "color": "red",
+      "createdAt": "2025-12-22T07:10:52.274Z"
+    },
+    {
+      "_id": "6947f893e44bec8773b44562",
+      "name": "Packing",
+      "code": "Pack-01",
+      "description": "",
+      "color": "pink",
+      "createdAt": "2025-12-21T13:39:31.069Z"
+    },
+    {
+      "_id": "6947f88ae44bec8773b44561",
+      "name": "Plating",
+      "code": "Pla-01",
+      "description": "",
+      "color": "purple",
+      "createdAt": "2025-12-21T13:39:22.992Z"
+    },
+    {
+      "_id": "6947f882e44bec8773b44560",
+      "name": "Grinding",
+      "code": "Gri-01",
+      "description": "",
+      "color": "teal",
+      "createdAt": "2025-12-21T13:39:14.263Z"
+    },
+    {
+      "_id": "6947f86ae44bec8773b4455f",
+      "name": "Milling",
+      "code": "Milling-01",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:38:50.280Z"
+    },
+    {
+      "_id": "6947f85de44bec8773b4455e",
+      "name": "Tapping",
+      "code": "Tapping-01",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:38:37.518Z"
+    },
+    {
+      "_id": "6947f853e44bec8773b4455d",
+      "name": "Drilling",
+      "code": "Drilling-01",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:38:27.569Z"
+    },
+    {
+      "_id": "6947f83fe44bec8773b4455c",
+      "name": "VMC-OP-30",
+      "code": "VMC-03",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:38:07.687Z"
+    },
+    {
+      "_id": "6947f801e44bec8773b4455b",
+      "name": "VMC-OP-20",
+      "code": "VMC-02",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:37:05.756Z"
+    },
+    {
+      "_id": "6947f7eae44bec8773b4455a",
+      "name": "VMC-OP-10",
+      "code": "VMC-01",
+      "description": "",
+      "color": "orange",
+      "createdAt": "2025-12-21T13:36:42.593Z"
+    },
+    {
+      "_id": "6947f7c2e44bec8773b44559",
+      "name": "CNC OP 30",
+      "code": "CNC-03",
+      "description": "",
+      "color": "amber",
+      "createdAt": "2025-12-21T13:36:02.509Z"
+    },
+    {
+      "_id": "6947f7b4e44bec8773b44558",
+      "name": "CNC OP 20",
+      "code": "CNC-02",
+      "description": "",
+      "color": "amber",
+      "createdAt": "2025-12-21T13:35:48.425Z"
+    },
+    {
+      "_id": "6947f7a9e44bec8773b44557",
+      "name": "CNC OP 10",
+      "code": "CNC-01",
+      "description": "",
+      "color": "amber",
+      "createdAt": "2025-12-21T13:35:37.473Z"
+    },
+    {
+      "_id": "6947f793e44bec8773b44556",
+      "name": "Forging",
+      "code": "03",
+      "description": "",
+      "color": "amber",
+      "createdAt": "2025-12-21T13:35:15.258Z"
+    },
+    {
+      "_id": "6947f783e44bec8773b44555",
+      "name": "Raw Material Cutting",
+      "code": "02",
+      "description": "",
+      "color": "gray",
+      "createdAt": "2025-12-21T13:34:59.744Z"
+    },
+    {
+      "_id": "6947f76de44bec8773b44554",
+      "name": "Raw Material Acquisition",
+      "code": "01",
+      "description": "",
+      "color": "gray",
+      "createdAt": "2025-12-21T13:34:37.954Z"
+    }
+  ],
+  "items": [
+    {
+      "_id": "6948ef2d5bc9dc662d26e6f2",
+      "name": "P Rings 135 Dia",
+      "code": "135 Dia",
+      "specifications": "",
+      "material": "20MnCr5",
+      "category": "",
+      "processRoute": [
+        {
+          "id": "6947f76de44bec8773b44554",
+          "name": "Raw Material Acquisition",
+          "code": "01",
+          "description": "",
+          "color": "gray",
+          "order": 1
+        },
+        {
+          "id": "6947f783e44bec8773b44555",
+          "name": "Raw Material Cutting",
+          "code": "02",
+          "description": "",
+          "color": "gray",
+          "order": 2
+        },
+        {
+          "id": "6947f793e44bec8773b44556",
+          "name": "Forging",
+          "code": "03",
+          "description": "",
+          "color": "amber",
+          "order": 3
+        },
+        {
+          "id": "6947f7a9e44bec8773b44557",
+          "name": "CNC OP 10",
+          "code": "CNC-01",
+          "description": "",
+          "color": "amber",
+          "order": 4
+        },
+        {
+          "id": "6947f7b4e44bec8773b44558",
+          "name": "CNC OP 20",
+          "code": "CNC-02",
+          "description": "",
+          "color": "amber",
+          "order": 5
+        },
+        {
+          "id": "6948eefcb418d37705bc4796",
+          "name": "Heat Treatment",
+          "code": "HT-01",
+          "description": "",
+          "color": "red",
+          "order": 6
+        },
+        {
+          "id": "6947f893e44bec8773b44562",
+          "name": "Packing",
+          "code": "Pack-01",
+          "description": "",
+          "color": "pink",
+          "order": 7
+        }
+      ],
+      "createdAt": "2025-12-22T07:11:41.032Z"
+    }
+  ],
+  "batches": [
+    {
+      "_id": "6948f29484664682c382be8a",
+      "batchNumber": "2025-12-001",
+      "quantity": 5000,
+      "priority": "normal",
+      "targetDate": "2026-01-30",
+      "customer": "",
+      "itemId": "6948ef2d5bc9dc662d26e6f2",
+      "itemName": "P Rings 135 Dia",
+      "itemCode": "135 Dia",
+      "processes": [
+        {
+          "id": "6947f76de44bec8773b44554",
+          "name": "Raw Material Acquisition",
+          "code": "01",
+          "description": "",
+          "color": "gray",
+          "order": 1,
+          "status": "completed",
+          "startTime": "2025-12-22T07:42:36.396Z",
+          "endTime": "2025-12-22T07:42:48.391Z",
+          "notes": ""
+        },
+        {
+          "id": "6947f783e44bec8773b44555",
+          "name": "Raw Material Cutting",
+          "code": "02",
+          "description": "",
+          "color": "gray",
+          "order": 2,
+          "status": "inprogress",
+          "startTime": "2025-12-22T13:41:54.464Z",
+          "endTime": "2025-12-22T07:43:00.620Z",
+          "notes": ""
+        },
+        {
+          "id": "6947f793e44bec8773b44556",
+          "name": "Forging",
+          "code": "03",
+          "description": "",
+          "color": "amber",
+          "order": 3,
+          "status": "inprogress",
+          "startTime": "2025-12-22T07:51:07.790Z",
+          "endTime": "2025-12-22T07:51:42.140Z",
+          "notes": ""
+        },
+        {
+          "id": "6947f7a9e44bec8773b44557",
+          "name": "CNC OP 10",
+          "code": "CNC-01",
+          "description": "",
+          "color": "amber",
+          "order": 4,
+          "status": "completed",
+          "startTime": null,
+          "endTime": "2025-12-22T13:26:39.196Z",
+          "notes": ""
+        },
+        {
+          "id": "6947f7b4e44bec8773b44558",
+          "name": "CNC OP 20",
+          "code": "CNC-02",
+          "description": "",
+          "color": "amber",
+          "order": 5,
+          "status": "inprogress",
+          "startTime": "2025-12-22T13:27:22.993Z",
+          "endTime": null,
+          "notes": ""
+        },
+        {
+          "id": "6948eefcb418d37705bc4796",
+          "name": "Heat Treatment",
+          "code": "HT-01",
+          "description": "",
+          "color": "red",
+          "order": 6,
+          "status": "completed",
+          "startTime": null,
+          "endTime": "2025-12-22T13:36:05.898Z",
+          "notes": ""
+        },
+        {
+          "id": "6947f893e44bec8773b44562",
+          "name": "Packing",
+          "code": "Pack-01",
+          "description": "",
+          "color": "pink",
+          "order": 7,
+          "status": "pending",
+          "startTime": null,
+          "endTime": null,
+          "notes": ""
+        }
+      ],
+      "createdAt": "2025-12-22T07:26:12.918Z",
+      "completedAt": null
+    }
+  ]
+}
