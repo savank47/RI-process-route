@@ -23,18 +23,30 @@ class ItemManager {
             return;
         }
 
+        // Get dimensions and ensure they're plain objects
+        const dimensions = DimensionManager.getDimensions();
+        
+        // Ensure processRoute is serializable (remove any non-JSON data)
+        const processRoute = STATE.selectedProcessesForRoute.map((proc, index) => ({
+            id: proc.id,
+            name: proc.name,
+            code: proc.code,
+            description: proc.description || '',
+            color: proc.color || 'blue',
+            order: index + 1
+        }));
+
         const item = {
-            name,
-            code,
-            specifications: spec,
-            material,
-            category,
-            dimensions: DimensionManager.getDimensions(),
-            processRoute: STATE.selectedProcessesForRoute.map((proc, index) => ({
-                ...proc,
-                order: index + 1
-            }))
+            name: name,
+            code: code,
+            specifications: spec || '',
+            material: material || '',
+            category: category || '',
+            dimensions: dimensions || [],
+            processRoute: processRoute
         };
+
+        console.log('Item to be saved:', JSON.stringify(item, null, 2)); // Debug log
 
         try {
             await api.addItem(item);
