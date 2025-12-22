@@ -1324,10 +1324,15 @@
                 // Use query parameters instead of path parameters
                 await apiCall(`/batches?id=${batchId}&processIndex=${processIndex}&action=updateProcess`, 'PUT', updates);
                 
-                // Re-render only the tracking display, don't reload the page
+                // Store current batch selection to restore it
+                const currentBatchId = document.getElementById('trackingBatchSelect').value;
+                
+                // Update only what's necessary - don't switch tabs
                 await loadBatchTracking();
-                await renderBatchesList();
                 await updateStats();
+                
+                // Restore batch selection in case it was cleared
+                document.getElementById('trackingBatchSelect').value = currentBatchId;
                 
                 showToast('Process status updated', 'success');
             } catch (error) {
