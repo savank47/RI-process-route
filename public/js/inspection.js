@@ -1,11 +1,15 @@
 // ========================================
 // FRONTEND JAVASCRIPT MODULE
 // File: js/inspection.js
-// Purpose: Inspection reports and quality control
+// Purpose: Inspection reports with multi-sample support
 // Runs on: Browser (Client-side)
 // ========================================
 
 class InspectionManager {
+    // Multi-sample support
+    static currentSampleSize = 1;
+    static currentBatchForInspection = null;
+
     // NEW: Render Inspection Reports Tab
     static async renderTab() {
         await this.updateBatchSelect();
@@ -28,259 +32,22 @@ class InspectionManager {
         }
     }
 
-    static async generateReport() {
-        const batchId = document.getElementById('trackingBatchSelect').value;
-        if (!batchId) {
-            UI.showToast('Please select a batch first', 'error');
-            return;
-        }
-
-        const batches = await api.getBatches();
-        const batch = batches.find(b => b._id === batchId);
-        
-        if (!batch) {
-            UI.showToast('Batch not found', 'error');
-            return;
-        }
-
-        if (!batch.itemDimensions || batch.itemDimensions.length === 0) {
-            UI.showToast('No dimensions defined for this item', 'info');
-            return;
-        }
-
-        this.showInspectionModal(batch);
-    }
-
-    static showInspectionModal(batch) {
-        const modal = document.getElementById('inspectionModal');
-        const dimensionsContainer = document.getElementById('inspectionDimensions');
-        
-        // Set batch info
-        document.getElementById('inspectionBatchInfo').innerHTML = `
-            <div class="flex items-center gap-3">
-                <div>
-                    <h3 class="font-bold text-lg">${batch.batchNumber}</h3>
-                    <p class="text-sm text-gray-600">${batch.itemName} (${batch.itemCode})</p>
-                </div>
-            </div>
-        `;
-
-        // Render dimensions for inspection
-        dimensionsContainer.innerHTML = batch.itemDimensions.map((dim, index) => `
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                <div class="flex justify-between items-start mb-3">
-                    <div>
-                        <h4 class="font-bold text-gray-800">${dim.name}</h4>
-                        <p class="text-sm text-gray-600">Target: ${dim.minValue} - ${dim.maxValue} ${dim.unit}</p>
-                    </div>
-                </div>
-                <div class="space-y-2">
-                    <label class="block text-sm font-medium text-gray-700">Actual Measurement:</label>
-                    <div class="flex gap-2 items-center">
-                        <input type="number" 
-                               step="0.01" 
-                               id="actual-${index}" 
-                               placeholder="Enter measured value" 
-                               onchange="InspectionManager.checkTolerance(${index}, ${dim.minValue}, ${dim.maxValue})"
-                               class="border border-gray-300 rounded px-3 py-2 text-sm flex-1">
-                        <span class="text-sm text-gray-600">${dim.unit}</span>
-                    </div>
-                    <div id="result-${index}" class="text-sm font-semibold"></div>
-                </div>
-            </div>
-        `).join('');
-
-        // Show modal
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    static checkTolerance(index, minValue, maxValue) {
-        const actualInput = document.getElementById(`actual-${index}`);
-        const resultDiv = document.getElementById(`result-${index}`);
-        const actual = parseFloat(actualInput.value);
-
-        if (isNaN(actual)) {
-            resultDiv.innerHTML = '';
-            actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-fail', 'dimension-warning');
-            return;
-        }
-
-        const tolerance = (maxValue - minValue) * 0.1; // 10% buffer for warning
-        
-        if (actual >= minValue && actual <= maxValue) {
-            if (actual < minValue + tolerance || actual > maxValue - tolerance) {
-                // Close to limits - warning
-                resultDiv.innerHTML = '<span class="text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>WARNING: Close to limit</span>';
-                actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-fail');
-                actualInput.parentElement.parentElement.parentElement.classList.add('dimension-warning');
+    static setSampleSize(value) {
+        if (value === 'custom') {
+            const customSize = prompt('Enter number of samples to measure:', '5');
+            if (customSize && !isNaN(customSize) && parseInt(customSize) > 0) {
+                this.currentSampleSize = parseInt(customSize);
             } else {
-                // Within tolerance - pass
-                resultDiv.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>PASS: Within tolerance</span>';
-                actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-fail', 'dimension-warning');
-                actualInput.parentElement.parentElement.parentElement.classList.add('dimension-pass');
+                return; // Cancel if invalid
             }
         } else {
-            // Out of tolerance - fail
-            const deviation = actual < minValue ? (minValue - actual) : (actual - maxValue);
-            resultDiv.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle mr-1"></i>FAIL: Out of tolerance by ${deviation.toFixed(3)}</span>`;
-            actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-warning');
-            actualInput.parentElement.parentElement.parentElement.classList.add('dimension-fail');
+            this.currentSampleSize = parseInt(value) || 1;
         }
-    }
-
-    static async saveInspection() {
-        const batchId = document.getElementById('trackingBatchSelect').value;
-        const batches = await api.getBatches();
-        const batch = batches.find(b => b._id === batchId);
         
-        if (!batch) return;
-
-        const inspectorNotes = document.getElementById('inspectorNotes').value.trim();
-        
-        // Collect actual measurements
-        const measurements = batch.itemDimensions.map((dim, index) => {
-            const actualInput = document.getElementById(`actual-${index}`);
-            const actual = parseFloat(actualInput.value);
-            
-            let status = 'not_measured';
-            if (!isNaN(actual)) {
-                if (actual >= dim.minValue && actual <= dim.maxValue) {
-                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
-                    if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
-                        status = 'warning';
-                    } else {
-                        status = 'pass';
-                    }
-                } else {
-                    status = 'fail';
-                }
-            }
-
-            return {
-                name: dim.name,
-                target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
-                actual: isNaN(actual) ? null : actual,
-                unit: dim.unit,
-                status: status
-            };
-        });
-
-        const inspection = {
-            timestamp: new Date().toISOString(),
-            inspector: 'Current User', // In real app, get from auth
-            measurements: measurements,
-            notes: inspectorNotes,
-            overallStatus: measurements.some(m => m.status === 'fail') ? 'rejected' : 
-                          measurements.some(m => m.status === 'warning') ? 'conditional' : 'approved'
-        };
-
-        // Add inspection to batch
-        if (!batch.inspections) batch.inspections = [];
-        batch.inspections.push(inspection);
-
-        try {
-            await api.updateBatch(batchId, { inspections: batch.inspections });
-            this.closeModal();
-            UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()}`, 
-                        inspection.overallStatus === 'approved' ? 'success' : 'info');
-            
-            // Reload tracking to show inspection data
-            await TrackingManager.load();
-        } catch (error) {
-            console.error('Failed to save inspection:', error);
-            UI.showToast('Failed to save inspection', 'error');
-        }
-    }
-
-    static closeModal() {
-        const modal = document.getElementById('inspectionModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.getElementById('inspectorNotes').value = '';
-    }
-
-    static async showHistory() {
-        const batchId = document.getElementById('trackingBatchSelect').value;
-        if (!batchId) {
-            UI.showToast('Please select a batch first', 'error');
-            return;
-        }
-
-        const batches = await api.getBatches();
-        const batch = batches.find(b => b._id === batchId);
-        
-        if (!batch || !batch.inspections || batch.inspections.length === 0) {
-            UI.showToast('No inspection history for this batch', 'info');
-            return;
-        }
-
-        const modal = document.getElementById('inspectionHistoryModal');
-        const container = document.getElementById('inspectionHistoryList');
-        
-        container.innerHTML = batch.inspections.map((inspection, idx) => {
-            const statusColors = {
-                approved: 'bg-green-100 text-green-800',
-                conditional: 'bg-amber-100 text-amber-800',
-                rejected: 'bg-red-100 text-red-800'
-            };
-
-            return `
-                <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                    <div class="flex justify-between items-start mb-3">
-                        <div>
-                            <h4 class="font-bold">Inspection #${idx + 1}</h4>
-                            <p class="text-sm text-gray-600">${new Date(inspection.timestamp).toLocaleString()}</p>
-                            <p class="text-sm text-gray-600">Inspector: ${inspection.inspector}</p>
-                        </div>
-                        <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
-                            ${inspection.overallStatus.toUpperCase()}
-                        </span>
-                    </div>
-                    <div class="space-y-2">
-                        ${inspection.measurements.map(m => {
-                            const statusIcons = {
-                                pass: '<i class="fas fa-check-circle text-green-600"></i>',
-                                warning: '<i class="fas fa-exclamation-triangle text-amber-600"></i>',
-                                fail: '<i class="fas fa-times-circle text-red-600"></i>',
-                                not_measured: '<i class="fas fa-minus-circle text-gray-400"></i>'
-                            };
-                            return `
-                                <div class="flex justify-between items-center text-sm">
-                                    <span class="font-medium">${m.name}:</span>
-                                    <span>${m.actual !== null ? m.actual + ' ' + m.unit : 'Not measured'} ${statusIcons[m.status]}</span>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                    ${inspection.notes ? `<p class="mt-3 text-sm text-gray-600 italic">"${inspection.notes}"</p>` : ''}
-                </div>
-            `;
-        }).join('');
-
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
-
-    static closeHistoryModal() {
-        const modal = document.getElementById('inspectionHistoryModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-    }
-
-    static async previewDimensions() {
-        const select = document.getElementById('inspectionBatchSelect');
-        const filterSelect = document.getElementById('inspectionFilterBatch');
-        const batches = await api.getBatches();
-        
-        const options = '<option value="">-- Select Batch --</option>' + 
-            batches.map(batch => `<option value="${batch._id}">${batch.batchNumber} - ${batch.itemName}</option>`).join('');
-        
-        select.innerHTML = options;
-        
-        if (filterSelect) {
-            filterSelect.innerHTML = '<option value="all">All Batches</option>' + 
-                batches.map(batch => `<option value="${batch._id}">${batch.batchNumber}</option>`).join('');
+        // Refresh the form with new sample size
+        const batchId = document.getElementById('inspectionBatchSelect').value;
+        if (batchId) {
+            this.previewDimensions();
         }
     }
 
@@ -302,50 +69,109 @@ class InspectionManager {
             return;
         }
 
+        this.currentBatchForInspection = batch;
         preview.classList.remove('hidden');
         
-        // Batch info
+        // Batch info with sample size selector
         document.getElementById('inspectionFormBatchInfo').innerHTML = `
-            <p><strong>Batch:</strong> ${batch.batchNumber}</p>
-            <p><strong>Item:</strong> ${batch.itemName} (${batch.itemCode})</p>
-            <p><strong>Quantity:</strong> ${batch.quantity}</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                    <p><strong>Batch:</strong> ${batch.batchNumber}</p>
+                    <p><strong>Item:</strong> ${batch.itemName} (${batch.itemCode})</p>
+                    <p><strong>Batch Quantity:</strong> ${batch.quantity} pieces</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Number of Samples to Measure:</label>
+                    <select onchange="InspectionManager.setSampleSize(this.value)" class="border border-gray-300 rounded-lg px-3 py-2 text-sm w-full">
+                        <option value="1" ${this.currentSampleSize === 1 ? 'selected' : ''}>1 sample</option>
+                        <option value="5" ${this.currentSampleSize === 5 ? 'selected' : ''}>5 samples</option>
+                        <option value="10" ${this.currentSampleSize === 10 ? 'selected' : ''}>10 samples</option>
+                        <option value="20" ${this.currentSampleSize === 20 ? 'selected' : ''}>20 samples</option>
+                        <option value="custom">Custom number...</option>
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Measuring ${this.currentSampleSize} of ${batch.quantity} pieces (${((this.currentSampleSize/batch.quantity)*100).toFixed(1)}% sampling)</p>
+                </div>
+            </div>
         `;
 
-        // Dimension inputs
+        // Dimension inputs with multiple samples
         const dimensionsContainer = document.getElementById('inspectionFormDimensions');
-        dimensionsContainer.innerHTML = batch.itemDimensions.map((dim, index) => `
-            <div class="border border-gray-200 rounded-lg p-4 bg-white">
-                <div class="flex justify-between items-start mb-2">
-                    <div>
-                        <h5 class="font-bold text-gray-800">${dim.name}</h5>
-                        <p class="text-sm text-gray-600">Target: ${dim.minValue} - ${dim.maxValue} ${dim.unit}</p>
-                    </div>
+        dimensionsContainer.innerHTML = batch.itemDimensions.map((dim, dimIndex) => `
+            <div class="border border-gray-200 rounded-lg p-4 bg-white mb-4">
+                <div class="mb-3 pb-3 border-b bg-gradient-to-r from-blue-50 to-indigo-50 -m-4 p-4 rounded-t-lg">
+                    <h5 class="font-bold text-gray-800 text-lg">${dim.name}</h5>
+                    <p class="text-sm text-gray-600">Target Range: <span class="font-semibold text-green-700">${dim.minValue} - ${dim.maxValue} ${dim.unit}</span></p>
+                    <p class="text-xs text-gray-500 mt-1">Tolerance: ±${((dim.maxValue - dim.minValue)/2).toFixed(3)} ${dim.unit}</p>
                 </div>
-                <div class="mt-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Actual Measurement:</label>
-                    <div class="flex gap-2 items-center">
-                        <input type="number" 
-                               step="0.01" 
-                               id="inspection-actual-${index}" 
-                               placeholder="Enter measured value" 
-                               onchange="InspectionManager.checkToleranceInForm(${index}, ${dim.minValue}, ${dim.maxValue})"
-                               class="border border-gray-300 rounded px-3 py-2 text-sm flex-1">
-                        <span class="text-sm text-gray-600">${dim.unit}</span>
+                
+                <div class="overflow-x-auto mt-4">
+                    <table class="w-full text-sm border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="px-3 py-2 text-left font-semibold border">Sample #</th>
+                                <th class="px-3 py-2 text-left font-semibold border">Measurement (${dim.unit})</th>
+                                <th class="px-3 py-2 text-center font-semibold border">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${Array.from({length: this.currentSampleSize}, (_, sampleIndex) => `
+                                <tr class="border-t hover:bg-gray-50">
+                                    <td class="px-3 py-2 font-medium border">Sample ${sampleIndex + 1}</td>
+                                    <td class="px-3 py-2 border">
+                                        <input type="number" 
+                                               step="0.001" 
+                                               id="inspection-${dimIndex}-${sampleIndex}" 
+                                               placeholder="Enter value" 
+                                               onchange="InspectionManager.checkSampleTolerance(${dimIndex}, ${sampleIndex}, ${dim.minValue}, ${dim.maxValue})"
+                                               class="border border-gray-300 rounded px-3 py-2 w-full focus:ring-2 focus:ring-blue-500">
+                                    </td>
+                                    <td class="px-3 py-2 border text-center">
+                                        <div id="inspection-result-${dimIndex}-${sampleIndex}" class="text-xs font-semibold"></div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Summary Stats -->
+                <div id="inspection-summary-${dimIndex}" class="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg hidden">
+                    <h6 class="font-semibold text-gray-700 mb-2 text-sm">📊 Statistical Summary:</h6>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 text-sm">
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <div class="text-xs text-gray-500">Minimum</div>
+                            <div class="font-bold text-blue-700" id="min-${dimIndex}">-</div>
+                        </div>
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <div class="text-xs text-gray-500">Maximum</div>
+                            <div class="font-bold text-blue-700" id="max-${dimIndex}">-</div>
+                        </div>
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <div class="text-xs text-gray-500">Average</div>
+                            <div class="font-bold text-blue-700" id="avg-${dimIndex}">-</div>
+                        </div>
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <div class="text-xs text-gray-500">Range</div>
+                            <div class="font-bold text-blue-700" id="range-${dimIndex}">-</div>
+                        </div>
+                        <div class="bg-white p-2 rounded shadow-sm">
+                            <div class="text-xs text-gray-500">Overall</div>
+                            <div class="font-bold" id="status-${dimIndex}">-</div>
+                        </div>
                     </div>
-                    <div id="inspection-result-${index}" class="text-sm font-semibold mt-2"></div>
                 </div>
             </div>
         `).join('');
     }
 
-    static checkToleranceInForm(index, minValue, maxValue) {
-        const actualInput = document.getElementById(`inspection-actual-${index}`);
-        const resultDiv = document.getElementById(`inspection-result-${index}`);
+    static checkSampleTolerance(dimIndex, sampleIndex, minValue, maxValue) {
+        const actualInput = document.getElementById(`inspection-${dimIndex}-${sampleIndex}`);
+        const resultDiv = document.getElementById(`inspection-result-${dimIndex}-${sampleIndex}`);
         const actual = parseFloat(actualInput.value);
 
         if (isNaN(actual)) {
             resultDiv.innerHTML = '';
-            actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-fail', 'dimension-warning');
+            actualInput.classList.remove('bg-green-50', 'bg-red-50', 'bg-amber-50');
             return;
         }
 
@@ -353,20 +179,59 @@ class InspectionManager {
         
         if (actual >= minValue && actual <= maxValue) {
             if (actual < minValue + tolerance || actual > maxValue - tolerance) {
-                resultDiv.innerHTML = '<span class="text-amber-600"><i class="fas fa-exclamation-triangle mr-1"></i>WARNING: Close to limit</span>';
-                actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-fail');
-                actualInput.parentElement.parentElement.parentElement.classList.add('dimension-warning');
+                resultDiv.innerHTML = '<span class="text-amber-600"><i class="fas fa-exclamation-triangle"></i> WARN</span>';
+                actualInput.classList.remove('bg-green-50', 'bg-red-50');
+                actualInput.classList.add('bg-amber-50');
             } else {
-                resultDiv.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>PASS: Within tolerance</span>';
-                actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-fail', 'dimension-warning');
-                actualInput.parentElement.parentElement.parentElement.classList.add('dimension-pass');
+                resultDiv.innerHTML = '<span class="text-green-600"><i class="fas fa-check-circle"></i> PASS</span>';
+                actualInput.classList.remove('bg-red-50', 'bg-amber-50');
+                actualInput.classList.add('bg-green-50');
             }
         } else {
-            const deviation = actual < minValue ? (minValue - actual) : (actual - maxValue);
-            resultDiv.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle mr-1"></i>FAIL: Out of tolerance by ${deviation.toFixed(3)}</span>`;
-            actualInput.parentElement.parentElement.parentElement.classList.remove('dimension-pass', 'dimension-warning');
-            actualInput.parentElement.parentElement.parentElement.classList.add('dimension-fail');
+            resultDiv.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle"></i> FAIL</span>`;
+            actualInput.classList.remove('bg-green-50', 'bg-amber-50');
+            actualInput.classList.add('bg-red-50');
         }
+        
+        // Update summary stats
+        this.updateDimensionSummary(dimIndex, minValue, maxValue);
+    }
+
+    static updateDimensionSummary(dimIndex, minValue, maxValue) {
+        const values = [];
+        for (let i = 0; i < this.currentSampleSize; i++) {
+            const input = document.getElementById(`inspection-${dimIndex}-${i}`);
+            if (input) {
+                const val = parseFloat(input.value);
+                if (!isNaN(val)) values.push(val);
+            }
+        }
+        
+        if (values.length === 0) return;
+        
+        const min = Math.min(...values);
+        const max = Math.max(...values);
+        const avg = values.reduce((a, b) => a + b, 0) / values.length;
+        const range = max - min;
+        
+        const allPass = values.every(v => v >= minValue && v <= maxValue);
+        const anyFail = values.some(v => v < minValue || v > maxValue);
+        
+        document.getElementById(`min-${dimIndex}`).textContent = min.toFixed(3);
+        document.getElementById(`max-${dimIndex}`).textContent = max.toFixed(3);
+        document.getElementById(`avg-${dimIndex}`).textContent = avg.toFixed(3);
+        document.getElementById(`range-${dimIndex}`).textContent = range.toFixed(3);
+        
+        const statusSpan = document.getElementById(`status-${dimIndex}`);
+        if (anyFail) {
+            statusSpan.innerHTML = '<span class="text-red-600 font-bold">REJECT</span>';
+        } else if (allPass) {
+            statusSpan.innerHTML = '<span class="text-green-600 font-bold">ACCEPT</span>';
+        } else {
+            statusSpan.innerHTML = '<span class="text-amber-600 font-bold">PARTIAL</span>';
+        }
+        
+        document.getElementById(`inspection-summary-${dimIndex}`).classList.remove('hidden');
     }
 
     static async saveFromTab() {
@@ -384,48 +249,70 @@ class InspectionManager {
             return;
         }
 
-        const batches = await api.getBatches();
-        const batch = batches.find(b => b._id === batchId);
-        
+        const batch = this.currentBatchForInspection;
         if (!batch) {
             UI.showToast('Batch not found', 'error');
             return;
         }
 
-        const measurements = batch.itemDimensions.map((dim, index) => {
-            const actualInput = document.getElementById(`inspection-actual-${index}`);
-            const actual = parseFloat(actualInput.value);
-            
-            let status = 'not_measured';
-            if (!isNaN(actual)) {
-                if (actual >= dim.minValue && actual <= dim.maxValue) {
-                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
-                    if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
-                        status = 'warning';
+        // Collect measurements for all samples
+        const measurements = batch.itemDimensions.map((dim, dimIndex) => {
+            const samples = [];
+            for (let sampleIndex = 0; sampleIndex < this.currentSampleSize; sampleIndex++) {
+                const actualInput = document.getElementById(`inspection-${dimIndex}-${sampleIndex}`);
+                const actual = parseFloat(actualInput.value);
+                
+                let status = 'not_measured';
+                if (!isNaN(actual)) {
+                    if (actual >= dim.minValue && actual <= dim.maxValue) {
+                        const tolerance = (dim.maxValue - dim.minValue) * 0.1;
+                        if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
+                            status = 'warning';
+                        } else {
+                            status = 'pass';
+                        }
                     } else {
-                        status = 'pass';
+                        status = 'fail';
                     }
-                } else {
-                    status = 'fail';
                 }
+                
+                samples.push({
+                    sampleNumber: sampleIndex + 1,
+                    value: isNaN(actual) ? null : actual,
+                    status: status
+                });
             }
-
+            
+            // Calculate statistics
+            const validSamples = samples.filter(s => s.value !== null).map(s => s.value);
+            const stats = validSamples.length > 0 ? {
+                min: Math.min(...validSamples),
+                max: Math.max(...validSamples),
+                avg: validSamples.reduce((a, b) => a + b, 0) / validSamples.length,
+                count: validSamples.length
+            } : null;
+            
             return {
                 name: dim.name,
                 target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
-                actual: isNaN(actual) ? null : actual,
                 unit: dim.unit,
-                status: status
+                samples: samples,
+                statistics: stats,
+                overallStatus: samples.some(s => s.status === 'fail') ? 'fail' : 
+                              samples.some(s => s.status === 'warning') ? 'warning' : 'pass'
             };
         });
 
         const inspection = {
             timestamp: new Date().toISOString(),
             inspector: inspectorName,
+            sampleSize: this.currentSampleSize,
+            batchQuantity: batch.quantity,
+            samplingPercentage: ((this.currentSampleSize / batch.quantity) * 100).toFixed(1),
             measurements: measurements,
             notes: notes,
-            overallStatus: measurements.some(m => m.status === 'fail') ? 'rejected' : 
-                          measurements.some(m => m.status === 'warning') ? 'conditional' : 'approved'
+            overallStatus: measurements.some(m => m.overallStatus === 'fail') ? 'rejected' : 
+                          measurements.some(m => m.overallStatus === 'warning') ? 'conditional' : 'approved'
         };
 
         if (!batch.inspections) batch.inspections = [];
@@ -435,7 +322,7 @@ class InspectionManager {
             await api.updateBatch(batchId, { inspections: batch.inspections });
             this.clearForm();
             await this.renderAllReports();
-            UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()}`, 
+            UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()} (${this.currentSampleSize} samples)`, 
                         inspection.overallStatus === 'approved' ? 'success' : 'info');
         } catch (error) {
             console.error('Failed to save inspection:', error);
@@ -448,6 +335,8 @@ class InspectionManager {
         document.getElementById('inspectorName').value = '';
         document.getElementById('inspectionFormNotes').value = '';
         document.getElementById('inspectionFormPreview').classList.add('hidden');
+        this.currentSampleSize = 1;
+        this.currentBatchForInspection = null;
     }
 
     static async renderAllReports() {
@@ -495,12 +384,13 @@ class InspectionManager {
         };
 
         container.innerHTML = allInspections.map(inspection => `
-            <div class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm">
+            <div class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
                 <div class="flex justify-between items-start mb-3">
                     <div>
                         <h4 class="font-bold text-gray-800">${inspection.batchNumber} - ${inspection.itemName}</h4>
                         <p class="text-sm text-gray-600">${new Date(inspection.timestamp).toLocaleString()}</p>
                         <p class="text-sm text-gray-600">Inspector: ${inspection.inspector}</p>
+                        ${inspection.sampleSize ? `<p class="text-sm text-blue-600"><i class="fas fa-vial mr-1"></i>${inspection.sampleSize} samples measured (${inspection.samplingPercentage}% of batch)</p>` : ''}
                     </div>
                     <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
                         ${inspection.overallStatus.toUpperCase()}
@@ -509,8 +399,45 @@ class InspectionManager {
                 
                 <div class="mb-3">
                     <h5 class="font-semibold text-gray-700 mb-2 text-sm">Measurements:</h5>
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
-                        ${inspection.measurements.map(m => {
+                    ${inspection.measurements.map(m => {
+                        // Check if this is multi-sample or single sample
+                        if (m.samples && m.samples.length > 1) {
+                            // Multi-sample report
+                            const statusIcons = {
+                                pass: '<i class="fas fa-check-circle text-green-600"></i>',
+                                warning: '<i class="fas fa-exclamation-triangle text-amber-600"></i>',
+                                fail: '<i class="fas fa-times-circle text-red-600"></i>',
+                                not_measured: '<i class="fas fa-minus-circle text-gray-400"></i>'
+                            };
+                            
+                            return `
+                                <div class="bg-gray-50 rounded p-3 mb-2">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <span class="font-semibold text-gray-800">${m.name}:</span>
+                                        <span class="text-sm font-semibold ${m.overallStatus === 'fail' ? 'text-red-600' : m.overallStatus === 'warning' ? 'text-amber-600' : 'text-green-600'}">
+                                            ${m.overallStatus.toUpperCase()}
+                                        </span>
+                                    </div>
+                                    <div class="grid grid-cols-5 gap-2 text-xs mb-2">
+                                        ${m.samples.map(s => `
+                                            <div class="text-center p-1 bg-white rounded border ${s.status === 'fail' ? 'border-red-300' : s.status === 'warning' ? 'border-amber-300' : 'border-green-300'}">
+                                                <div class="text-gray-500">#${s.sampleNumber}</div>
+                                                <div class="font-semibold">${s.value !== null ? s.value : 'N/A'}</div>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                    ${m.statistics ? `
+                                        <div class="grid grid-cols-4 gap-2 text-xs text-gray-600 bg-white p-2 rounded">
+                                            <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
+                                            <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
+                                            <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
+                                            <div><strong>Target:</strong> ${m.target}</div>
+                                        </div>
+                                    ` : ''}
+                                </div>
+                            `;
+                        } else {
+                            // Single sample report (legacy)
                             const statusIcons = {
                                 pass: '<i class="fas fa-check-circle text-green-600"></i>',
                                 warning: '<i class="fas fa-exclamation-triangle text-amber-600"></i>',
@@ -518,13 +445,13 @@ class InspectionManager {
                                 not_measured: '<i class="fas fa-minus-circle text-gray-400"></i>'
                             };
                             return `
-                                <div class="text-sm bg-gray-50 rounded px-2 py-1 flex justify-between items-center">
+                                <div class="text-sm bg-gray-50 rounded px-2 py-1 flex justify-between items-center mb-1">
                                     <span class="font-medium">${m.name}:</span>
-                                    <span>${m.actual !== null ? m.actual + ' ' + m.unit : 'N/A'} ${statusIcons[m.status]}</span>
+                                    <span>${m.actual !== null ? m.actual + ' ' + m.unit : 'N/A'} ${statusIcons[m.status || 'not_measured']}</span>
                                 </div>
                             `;
-                        }).join('')}
-                    </div>
+                        }
+                    }).join('')}
                 </div>
                 
                 ${inspection.notes ? `<p class="text-sm text-gray-600 italic bg-gray-50 rounded p-2"><strong>Notes:</strong> ${inspection.notes}</p>` : ''}
@@ -536,93 +463,33 @@ class InspectionManager {
         await this.renderAllReports();
     }
 
-    static async saveInspection() {
+    // Legacy single-sample modal support (for tracking tab)
+    static async generateReport() {
         const batchId = document.getElementById('trackingBatchSelect').value;
-        const batches = await api.getBatches();
-        const batch = batches.find(b => b._id === batchId);
-        
-        if (!batch) return;
-
-        // Get inspector name from modal
-        const inspectorName = document.getElementById('modalInspectorName').value.trim();
-        if (!inspectorName) {
-            UI.showToast('Please enter inspector name', 'error');
+        if (!batchId) {
+            UI.showToast('Please select a batch first', 'error');
             return;
         }
 
-        const inspectorNotes = document.getElementById('inspectorNotes').value.trim();
+        const batches = await api.getBatches();
+        const batch = batches.find(b => b._id === batchId);
         
-        // Collect actual measurements
-        const measurements = batch.itemDimensions.map((dim, index) => {
-            const actualInput = document.getElementById(`actual-${index}`);
-            const actual = parseFloat(actualInput.value);
-            
-            let status = 'not_measured';
-            if (!isNaN(actual)) {
-                if (actual >= dim.minValue && actual <= dim.maxValue) {
-                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
-                    if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
-                        status = 'warning';
-                    } else {
-                        status = 'pass';
-                    }
-                } else {
-                    status = 'fail';
-                }
-            }
-
-            return {
-                name: dim.name,
-                target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
-                actual: isNaN(actual) ? null : actual,
-                unit: dim.unit,
-                status: status
-            };
-        });
-
-        const inspection = {
-            timestamp: new Date().toISOString(),
-            inspector: inspectorName,
-            measurements: measurements,
-            notes: inspectorNotes,
-            overallStatus: measurements.some(m => m.status === 'fail') ? 'rejected' : 
-                          measurements.some(m => m.status === 'warning') ? 'conditional' : 'approved'
-        };
-
-        // Add inspection to batch
-        if (!batch.inspections) batch.inspections = [];
-        batch.inspections.push(inspection);
-
-        try {
-            await api.updateBatch(batchId, { inspections: batch.inspections });
-            this.closeModal();
-            UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()}`, 
-                        inspection.overallStatus === 'approved' ? 'success' : 'info');
-            
-            // Reload tracking to show inspection data
-            await TrackingManager.load();
-        } catch (error) {
-            console.error('Failed to save inspection:', error);
-            UI.showToast('Failed to save inspection', 'error');
+        if (!batch || !batch.itemDimensions || batch.itemDimensions.length === 0) {
+            UI.showToast('No dimensions defined for this item', 'info');
+            return;
         }
-    }
 
-    static closeModal() {
-        const modal = document.getElementById('inspectionModal');
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
-        document.getElementById('modalInspectorName').value = '';
-        document.getElementById('inspectorNotes').value = '';
+        // Use the Inspections tab for multi-sample reports
+        UI.showTab('inspections');
+        document.getElementById('inspectionBatchSelect').value = batchId;
+        this.previewDimensions();
+        UI.showToast('Please use the Inspection Reports tab for multi-sample inspection', 'info');
     }
 }
 
 // Make globally accessible
 window.InspectionManager = InspectionManager;
 window.generateInspectionReport = () => InspectionManager.generateReport();
-window.saveInspection = () => InspectionManager.saveInspection();
-window.closeInspectionModal = () => InspectionManager.closeModal();
-window.showInspectionHistory = () => InspectionManager.showHistory();
-window.closeInspectionHistoryModal = () => InspectionManager.closeHistoryModal();
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions();
 window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
 window.clearInspectionForm = () => InspectionManager.clearForm();
