@@ -501,9 +501,7 @@ InspectionManager.renderAllReports = async function() {
                         Inspector: ${inspection.inspector}
                     </p>
                 </div>
-                <div class="mt-3">
-                    ${renderInspectionMeasurements(inspection)}
-                </div>
+
                 <div class="flex flex-col items-end gap-2">
                     <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
                         ${inspection.overallStatus.toUpperCase()}
@@ -515,6 +513,9 @@ InspectionManager.renderAllReports = async function() {
                         class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                         Download PDF
                     </button>
+                </div>
+                <div class="mt-3">
+                    ${renderInspectionMeasurements(inspection)}
                 </div>
             </div>
         </div>
