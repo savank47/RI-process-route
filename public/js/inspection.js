@@ -407,36 +407,29 @@ InspectionManager.clearForm = function() {
 };
 
 // Report Visibility – New Inspection Format Only
-// Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
     return inspection.measurements.map(m => `
         <div class="bg-gray-50 rounded p-3 mb-3 border">
 
-            <div class="flex justify-between items-center mb-2">
-                <span class="font-semibold text-gray-800">${m.name}</span>
-                <span class="text-sm font-bold ${
-                    m.overallStatus === 'fail'
-                        ? 'text-red-600'
-                        : m.overallStatus === 'warning'
-                        ? 'text-amber-600'
-                        : 'text-green-600'
-                }">
+            <div class="flex justify-between mb-1">
+                <span class="font-semibold">${m.name}</span>
+                <span class="text-sm font-semibold">
                     ${m.overallStatus.toUpperCase()}
                 </span>
             </div>
 
-            <!-- Sample values (works for 1 or many samples) -->
+            <!-- Samples (works for 1 or more) -->
             <div class="grid grid-cols-5 gap-2 text-xs mb-2">
                 ${m.samples.map(s => `
-                    <div class="text-center p-1 bg-white rounded border">
-                        <div class="text-gray-500">#${s.sampleNumber}</div>
+                    <div class="text-center p-1 border rounded">
+                        <div>#${s.sampleNumber}</div>
                         <div class="font-semibold">${s.value}</div>
                     </div>
                 `).join('')}
             </div>
 
             <!-- Statistics -->
-            <div class="grid grid-cols-4 gap-2 text-xs text-gray-700 bg-white p-2 rounded">
+            <div class="grid grid-cols-4 gap-2 text-xs bg-white p-2 rounded">
                 <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
                 <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
                 <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
@@ -446,6 +439,7 @@ function renderInspectionMeasurements(inspection) {
         </div>
     `).join('');
 }
+
 
 
 
