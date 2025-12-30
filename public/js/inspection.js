@@ -514,10 +514,10 @@ InspectionManager.renderAllReports = async function() {
                         Download PDF
                     </button>
                 </div>
+            </div>
                 <div class="mt-3">
                     ${renderInspectionMeasurements(inspection)}
                 </div>
-            </div>
         </div>
     `).join('');
 };
