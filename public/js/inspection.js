@@ -550,13 +550,6 @@ console.log('renderAllReports START');
                 `).join('');
                 console.log('renderAllReports END');
 
-
-            
-            ${inspection.notes ? `<p class="text-sm text-gray-600 italic bg-gray-50 rounded p-2"><strong>Notes:</strong> ${inspection.notes}</p>` : ''}
-        </div>
-    `).join('');
-};
-
 // Filter reports
 InspectionManager.filterReports = async function() {
     await this.renderAllReports();
