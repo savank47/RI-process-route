@@ -405,40 +405,46 @@ InspectionManager.clearForm = function() {
     this.currentBatchForInspection = null;
 };
 
-
-//Report Visibility 
+// Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
-    return inspection.measurements.map(m => {
-        if (m.samples && m.samples.length > 1) {
-            return `
-                <div class="bg-gray-50 rounded p-3 mb-2">
-                    <div class="flex justify-between mb-1">
-                        <span class="font-semibold">${m.name}</span>
-                        <span class="text-sm font-semibold">
-                            ${m.overallStatus.toUpperCase()}
-                        </span>
-                    </div>
+    return inspection.measurements.map(m => `
+        <div class="bg-gray-50 rounded p-3 mb-3 border">
 
-                    <div class="grid grid-cols-5 gap-2 text-xs">
-                        ${m.samples.map(s => `
-                            <div class="text-center p-1 border rounded">
-                                <div>#${s.sampleNumber}</div>
-                                <div class="font-semibold">${s.value ?? 'N/A'}</div>
-                            </div>
-                        `).join('')}
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-semibold text-gray-800">${m.name}</span>
+                <span class="text-sm font-bold ${
+                    m.overallStatus === 'fail'
+                        ? 'text-red-600'
+                        : m.overallStatus === 'warning'
+                        ? 'text-amber-600'
+                        : 'text-green-600'
+                }">
+                    ${m.overallStatus.toUpperCase()}
+                </span>
+            </div>
+
+            <!-- Sample values -->
+            <div class="grid grid-cols-5 gap-2 text-xs mb-2">
+                ${m.samples.map(s => `
+                    <div class="text-center p-1 bg-white rounded border">
+                        <div class="text-gray-500">#${s.sampleNumber}</div>
+                        <div class="font-semibold">${s.value}</div>
                     </div>
-                </div>
-            `;
-        } else {
-            return `
-                <div class="text-sm bg-gray-50 rounded px-2 py-1 mb-1">
-                    <strong>${m.name}:</strong>
-                    ${m.actual ?? 'N/A'} ${m.unit || ''}
-                </div>
-            `;
-        }
-    }).join('');
+                `).join('')}
+            </div>
+
+            <!-- Statistics -->
+            <div class="grid grid-cols-4 gap-2 text-xs text-gray-700 bg-white p-2 rounded">
+                <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
+                <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
+                <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
+                <div><strong>Target:</strong> ${m.target}</div>
+            </div>
+
+        </div>
+    `).join('');
 }
+
 
 
 // Render all reports
