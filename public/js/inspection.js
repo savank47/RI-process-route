@@ -460,12 +460,15 @@ InspectionManager.clearForm = function() {
 
 // Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
-    if (!inspection.measurements || !Array.isArray(inspection.measurements)) {
+    if (!Array.isArray(inspection.measurements)) {
         return '';
     }
 
     return inspection.measurements.map(m => {
         const status = m.overallStatus || 'pass';
+
+        // 🔒 SAFETY: ensure samples is always an array
+        const samples = Array.isArray(m.samples) ? m.samples : [];
 
         return `
             <div class="bg-gray-50 rounded p-3 mb-3 border">
@@ -491,7 +494,7 @@ function renderInspectionMeasurements(inspection) {
 
                 <!-- Actual values -->
                 <div class="grid grid-cols-5 gap-2 text-xs">
-                    ${m.samples
+                    ${samples
                         .filter(s => typeof s.value === 'number')
                         .map(s => `
                             <div class="text-center p-2 bg-white rounded border">
@@ -506,6 +509,7 @@ function renderInspectionMeasurements(inspection) {
         `;
     }).join('');
 }
+
 
 
 // Render all reports
