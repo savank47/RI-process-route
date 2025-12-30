@@ -460,25 +460,19 @@ InspectionManager.clearForm = function() {
 
 // Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
-    // 🔒 SAFETY GUARD
     if (!inspection.measurements || !Array.isArray(inspection.measurements)) {
-        return `
-            <div class="text-sm text-gray-500 italic">
-                No measurement data available for this inspection.
-            </div>
-        `;
+        return '';
     }
 
     return inspection.measurements.map(m => {
         const status = m.overallStatus || 'pass';
-        const samples = Array.isArray(m.samples) ? m.samples : [];
-        const stats = m.statistics || {};
 
         return `
             <div class="bg-gray-50 rounded p-3 mb-3 border">
 
-                <div class="flex justify-between mb-1">
-                    <span class="font-semibold">${m.name || 'Unnamed dimension'}</span>
+                <!-- Dimension header -->
+                <div class="flex justify-between items-center mb-2">
+                    <span class="font-semibold text-gray-800">${m.name}</span>
                     <span class="text-sm font-semibold ${
                         status === 'fail'
                             ? 'text-red-600'
@@ -490,23 +484,24 @@ function renderInspectionMeasurements(inspection) {
                     </span>
                 </div>
 
-                <div class="grid grid-cols-5 gap-2 text-xs mb-2">
-                    ${samples.map(s => `
-                        <div class="text-center p-1 border rounded">
-                            <div>#${s.sampleNumber}</div>
-                            <div class="font-semibold">${s.value}</div>
-                        </div>
-                    `).join('')}
+                <!-- Target -->
+                <div class="text-sm text-gray-700 mb-2">
+                    <strong>Target:</strong> ${m.target}
                 </div>
 
-                ${stats.min !== undefined ? `
-                    <div class="grid grid-cols-4 gap-2 text-xs bg-white p-2 rounded">
-                        <div><strong>Min:</strong> ${stats.min.toFixed(3)}</div>
-                        <div><strong>Max:</strong> ${stats.max.toFixed(3)}</div>
-                        <div><strong>Avg:</strong> ${stats.avg.toFixed(3)}</div>
-                        <div><strong>Target:</strong> ${m.target || '-'}</div>
-                    </div>
-                ` : ''}
+                <!-- Actual values -->
+                <div class="grid grid-cols-5 gap-2 text-xs">
+                    ${m.samples
+                        .filter(s => typeof s.value === 'number')
+                        .map(s => `
+                            <div class="text-center p-2 bg-white rounded border">
+                                <div class="text-gray-500">Sample ${s.sampleNumber}</div>
+                                <div class="font-semibold">${s.value}</div>
+                            </div>
+                        `)
+                        .join('')}
+                </div>
+
             </div>
         `;
     }).join('');
