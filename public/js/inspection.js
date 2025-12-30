@@ -635,38 +635,47 @@ InspectionManager.generateReport = async function() {
 
 // ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
 InspectionManager.downloadInspectionPDF = function (index) {
-    const elementId = `inspection-report-${index}`;
-    const element = document.getElementById(elementId);
+    const source = document.getElementById(`inspection-report-${index}`);
 
-    // 🔒 HARD SAFETY CHECK
-    if (!element) {
-        console.error('PDF target not found:', elementId);
-        alert('Unable to generate PDF. Report element not found.');
+    if (!source) {
+        console.error('PDF source not found');
         return;
     }
 
-    const opt = {
-        margin: 10,
-        filename: `Inspection_Report_${index + 1}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: {
-            scale: 1,
-            useCORS: true
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        }
-    };
+    // 🔒 CLONE NODE (CRITICAL FIX)
+    const clone = source.cloneNode(true);
 
-    // ✅ THIS IS THE ACTUAL DOWNLOAD
+    // Optional: remove buttons from PDF
+    clone.querySelectorAll('button').forEach(btn => btn.remove());
+
+    // Put clone off-screen
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.left = '-9999px';
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
+
+    const filename = `Inspection_${index + 1}.pdf`;
+
     html2pdf()
-        .set(opt)
-        .from(element)
-        .save();
+        .set({
+            margin: 10,
+            filename,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 1 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        })
+        .from(clone)
+        .save()
+        .then(() => {
+            // 🧹 CLEANUP (IMPORTANT)
+            document.body.removeChild(wrapper);
+        })
+        .catch(err => {
+            console.error('PDF generation failed:', err);
+            document.body.removeChild(wrapper);
+        });
 };
-
 
 
 // Make globally accessible
