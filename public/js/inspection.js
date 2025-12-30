@@ -296,13 +296,13 @@ InspectionManager.updateDimensionSummary = function(dimIndex, minValue, maxValue
 };
 
 // Save inspection from tab
-InspectionManager.saveFromTab = async function() {
+InspectionManager.saveFromTab = async function () {
     if (!this.currentSampleSize) this.currentSampleSize = 1;
-    
+
     const batchId = document.getElementById('inspectionBatchSelect').value;
     const inspectorName = document.getElementById('inspectorName').value.trim();
     const notes = document.getElementById('inspectionFormNotes').value.trim();
-    
+
     if (!batchId) {
         UI.showToast('Please select a batch', 'error');
         return;
@@ -319,54 +319,105 @@ InspectionManager.saveFromTab = async function() {
         return;
     }
 
-    // Collect measurements for all samples
+    // Build measurements
     const measurements = batch.itemDimensions.map((dim, dimIndex) => {
         const samples = [];
+
         for (let sampleIndex = 0; sampleIndex < this.currentSampleSize; sampleIndex++) {
-            const actualInput = document.getElementById(`inspection-${sampleIndex}-${dimIndex}`);
-            const actual = parseFloat(actualInput.value);
-            
+            const input = document.getElementById(`inspection-${sampleIndex}-${dimIndex}`);
+            const value = input && input.value !== '' ? parseFloat(input.value) : null;
+
             let status = 'not_measured';
-            if (!isNaN(actual)) {
-                if (actual >= dim.minValue && actual <= dim.maxValue) {
-                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
-                    if (actual < dim.minValue + tolerance || actual > dim.maxValue - tolerance) {
-                        status = 'warning';
-                    } else {
-                        status = 'pass';
-                    }
-                } else {
+
+            if (value !== null && !isNaN(value)) {
+                if (value < dim.minValue || value > dim.maxValue) {
                     status = 'fail';
+                } else {
+                    const tolerance = (dim.maxValue - dim.minValue) * 0.1;
+                    status =
+                        value < dim.minValue + tolerance ||
+                        value > dim.maxValue - tolerance
+                            ? 'warning'
+                            : 'pass';
                 }
             }
-            
+
             samples.push({
                 sampleNumber: sampleIndex + 1,
-                value: isNaN(actual) ? null : actual,
-                status: status
+                value,
+                status
             });
         }
-        
-        // Calculate statistics
-        const validSamples = samples.filter(s => s.value !== null).map(s => s.value);
-        const stats = validSamples.length > 0 ? {
-            min: Math.min(...validSamples),
-            max: Math.max(...validSamples),
-            avg: validSamples.reduce((a, b) => a + b, 0) / validSamples.length,
-            count: validSamples.length
-        } : null;
-        
+
+        const validValues = samples
+            .filter(s => typeof s.value === 'number')
+            .map(s => s.value);
+
+        if (validValues.length === 0) {
+            return null; // ❌ invalid dimension
+        }
+
+        const min = Math.min(...validValues);
+        const max = Math.max(...validValues);
+        const avg = validValues.reduce((a, b) => a + b, 0) / validValues.length;
+
         return {
             name: dim.name,
-            target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
             unit: dim.unit,
-            actual: stats.avg,
-            samples: samples,
-            statistics: stats,
-            overallStatus: samples.some(s => s.status === 'fail') ? 'fail' : 
-                          samples.some(s => s.status === 'warning') ? 'warning' : 'pass'
+            target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
+            actual: avg, // ✅ REQUIRED FOR SUMMARY PANEL
+            samples,
+            statistics: {
+                min,
+                max,
+                avg,
+                count: validValues.length
+            },
+            overallStatus: samples.some(s => s.status === 'fail')
+                ? 'fail'
+                : samples.some(s => s.status === 'warning')
+                ? 'warning'
+                : 'pass'
         };
-    });
+    }).filter(Boolean); // 🔒 remove invalid dimensions
+
+    if (measurements.length === 0) {
+        UI.showToast('No valid measurements entered. Inspection not saved.', 'error');
+        return;
+    }
+
+    const inspection = {
+        timestamp: new Date().toISOString(),
+        inspector: inspectorName,
+        sampleSize: this.currentSampleSize,
+        batchQuantity: batch.quantity,
+        samplingPercentage: ((this.currentSampleSize / batch.quantity) * 100).toFixed(1),
+        measurements,
+        notes,
+        overallStatus: measurements.some(m => m.overallStatus === 'fail')
+            ? 'rejected'
+            : measurements.some(m => m.overallStatus === 'warning')
+            ? 'conditional'
+            : 'approved'
+    };
+
+    if (!Array.isArray(batch.inspections)) batch.inspections = [];
+    batch.inspections.push(inspection);
+
+    try {
+        await api.updateBatch(batchId, { inspections: batch.inspections });
+        this.clearForm();
+        await this.renderAllReports();
+        UI.showToast(
+            `Inspection saved: ${inspection.overallStatus.toUpperCase()}`,
+            inspection.overallStatus === 'approved' ? 'success' : 'info'
+        );
+    } catch (error) {
+        console.error('Failed to save inspection:', error);
+        UI.showToast('Failed to save inspection', 'error');
+    }
+};
+
 
     const inspection = {
         timestamp: new Date().toISOString(),
