@@ -501,7 +501,9 @@ InspectionManager.renderAllReports = async function() {
                         Inspector: ${inspection.inspector}
                     </p>
                 </div>
-
+                <div class="mt-3">
+                    ${renderInspectionMeasurements(inspection)}
+                </div>
                 <div class="flex flex-col items-end gap-2">
                     <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
                         ${inspection.overallStatus.toUpperCase()}
