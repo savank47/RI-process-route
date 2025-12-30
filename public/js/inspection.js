@@ -393,6 +393,7 @@ InspectionManager.saveFromTab = async function() {
         UI.showToast('Failed to save inspection', 'error');
     }
 };
+container.innerHTML = allInspections.map(inspection => `
 
 // Clear form
 InspectionManager.clearForm = function() {
@@ -449,8 +450,11 @@ InspectionManager.renderAllReports = async function() {
         rejected: 'bg-red-100 text-red-800 border-red-300'
     };
 
-    container.innerHTML = allInspections.map(inspection => `
-        <div class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
+
+//Add Download button 
+    // container.innerHTML = allInspections.map(inspection =>
+    container.innerHTML = allInspections.map((inspection, index) => `
+        <div id="inspection-report-${index}" class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
             <div class="flex justify-between items-start mb-3">
                 <div>
                     <h4 class="font-bold text-gray-800">${inspection.batchNumber} - ${inspection.itemName}</h4>
@@ -458,6 +462,15 @@ InspectionManager.renderAllReports = async function() {
                     <p class="text-sm text-gray-600">Inspector: ${inspection.inspector}</p>
                     ${inspection.sampleSize ? `<p class="text-sm text-blue-600"><i class="fas fa-vial mr-1"></i>${inspection.sampleSize} samples measured (${inspection.samplingPercentage}% of batch)</p>` : ''}
                 </div>
+                    <button
+                      onclick="InspectionManager.downloadInspectionPDF(
+                        ${index},
+                        '${inspection.batchNumber}',
+                        '${inspection.itemName}'
+                      )"
+                      class="mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                      Download PDF
+                    </button>
                 <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
                     ${inspection.overallStatus.toUpperCase()}
                 </span>
@@ -552,6 +565,34 @@ InspectionManager.generateReport = async function() {
     this.previewDimensions();
     UI.showToast('Please use the Inspection Reports tab for multi-sample inspection', 'info');
 };
+
+// ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
+InspectionManager.downloadInspectionPDF = function(index, batchNumber, itemName) {
+    const element = document.getElementById(`inspection-report-${index}`);
+
+    if (!element) {
+        UI.showToast('Inspection report not found', 'error');
+        return;
+    }
+
+    const safeItemName = itemName.replace(/[^a-z0-9]/gi, '_');
+    const fileName = `Inspection_${batchNumber}_${safeItemName}.pdf`;
+
+    const options = {
+        margin: 10,
+        filename: fileName,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        }
+    };
+
+    html2pdf().set(options).from(element).save();
+};
+
 
 // Make globally accessible
 window.InspectionManager = InspectionManager;
