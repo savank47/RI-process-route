@@ -405,6 +405,42 @@ InspectionManager.clearForm = function() {
     this.currentBatchForInspection = null;
 };
 
+
+//Report Visibility 
+function renderInspectionMeasurements(inspection) {
+    return inspection.measurements.map(m => {
+        if (m.samples && m.samples.length > 1) {
+            return `
+                <div class="bg-gray-50 rounded p-3 mb-2">
+                    <div class="flex justify-between mb-1">
+                        <span class="font-semibold">${m.name}</span>
+                        <span class="text-sm font-semibold">
+                            ${m.overallStatus.toUpperCase()}
+                        </span>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-2 text-xs">
+                        ${m.samples.map(s => `
+                            <div class="text-center p-1 border rounded">
+                                <div>#${s.sampleNumber}</div>
+                                <div class="font-semibold">${s.value ?? 'N/A'}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        } else {
+            return `
+                <div class="text-sm bg-gray-50 rounded px-2 py-1 mb-1">
+                    <strong>${m.name}:</strong>
+                    ${m.actual ?? 'N/A'} ${m.unit || ''}
+                </div>
+            `;
+        }
+    }).join('');
+}
+
+
 // Render all reports
 // Render all reports
 InspectionManager.renderAllReports = async function() {
