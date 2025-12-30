@@ -450,104 +450,106 @@ InspectionManager.renderAllReports = async function() {
         rejected: 'bg-red-100 text-red-800 border-red-300'
     };
 
-
+console.log('renderAllReports START');
 //Add Download button 
     // container.innerHTML = allInspections.map(inspection =>
-    container.innerHTML = allInspections.map((inspection, index) => `
-    <div id="inspection-report-${index}"
-         class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
+  container.innerHTML = allInspections.map((inspection, index) => `
+<div id="inspection-report-${index}"
+     class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
 
-        <div class="flex justify-between items-start mb-3">
-            <div>
-                <h4 class="font-bold text-gray-800">
-                    ${inspection.batchNumber} - ${inspection.itemName}
-                </h4>
-                <p class="text-sm text-gray-600">
-                    ${new Date(inspection.timestamp).toLocaleString()}
+    <div class="flex justify-between items-start mb-3">
+        <div>
+            <h4 class="font-bold text-gray-800">
+                ${inspection.batchNumber} - ${inspection.itemName}
+            </h4>
+            <p class="text-sm text-gray-600">
+                ${new Date(inspection.timestamp).toLocaleString()}
+            </p>
+            <p class="text-sm text-gray-600">
+                Inspector: ${inspection.inspector}
+            </p>
+            ${inspection.sampleSize ? `
+                <p class="text-sm text-blue-600">
+                    <i class="fas fa-vial mr-1"></i>
+                    ${inspection.sampleSize} samples measured
+                    (${inspection.samplingPercentage}% of batch)
                 </p>
-                <p class="text-sm text-gray-600">
-                    Inspector: ${inspection.inspector}
-                </p>
-                ${inspection.sampleSize ? `
-                    <p class="text-sm text-blue-600">
-                        <i class="fas fa-vial mr-1"></i>
-                        ${inspection.sampleSize} samples measured
-                        (${inspection.samplingPercentage}% of batch)
-                    </p>
-                ` : ''}
-            </div>
-
-            <div class="flex flex-col items-end gap-2">
-                <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
-                    ${inspection.overallStatus.toUpperCase()}
-                </span>
-
-                <button
-                    type="button"
-                    onclick="InspectionManager.downloadInspectionPDF(${index})"
-                    class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
-                    Download PDF
-                </button>
-            </div>
+            ` : ''}
         </div>
 
-        <div class="mb-3">
-            <h5 class="font-semibold text-gray-700 mb-2 text-sm">Measurements:</h5>
+        <div class="flex flex-col items-end gap-2">
+            <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
+                ${inspection.overallStatus.toUpperCase()}
+            </span>
 
-            ${inspection.measurements.map(m => {
-                if (m.samples && m.samples.length > 1) {
-                    return `
-                        <div class="bg-gray-50 rounded p-3 mb-2">
-                            <div class="flex justify-between items-start mb-2">
-                                <span class="font-semibold text-gray-800">${m.name}:</span>
-                                <span class="text-sm font-semibold ${
-                                    m.overallStatus === 'fail'
-                                        ? 'text-red-600'
-                                        : m.overallStatus === 'warning'
-                                        ? 'text-amber-600'
-                                        : 'text-green-600'
-                                }">
-                                    ${m.overallStatus.toUpperCase()}
-                                </span>
-                            </div>
-
-                            <div class="grid grid-cols-5 gap-2 text-xs mb-2">
-                                ${m.samples.map(s => `
-                                    <div class="text-center p-1 bg-white rounded border ${
-                                        s.status === 'fail'
-                                            ? 'border-red-300'
-                                            : s.status === 'warning'
-                                            ? 'border-amber-300'
-                                            : 'border-green-300'
-                                    }">
-                                        <div class="text-gray-500">#${s.sampleNumber}</div>
-                                        <div class="font-semibold">${s.value ?? 'N/A'}</div>
-                                    </div>
-                                `).join('')}
-                            </div>
-
-                            ${m.statistics ? `
-                                <div class="grid grid-cols-4 gap-2 text-xs text-gray-600 bg-white p-2 rounded">
-                                    <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
-                                    <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
-                                    <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
-                                    <div><strong>Target:</strong> ${m.target}</div>
-                                </div>
-                            ` : ''}
-                        </div>
-                    `;
-                } else {
-                    return `
-                        <div class="text-sm bg-gray-50 rounded px-2 py-1 flex justify-between items-center mb-1">
-                            <span class="font-medium">${m.name}:</span>
-                            <span>${m.actual ?? 'N/A'} ${m.unit || ''}</span>
-                        </div>
-                    `;
-                }
-            }).join('')}
+            <button
+                type="button"
+                onclick="InspectionManager.downloadInspectionPDF(${index})"
+                class="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
+                Download PDF
+            </button>
         </div>
     </div>
+
+    <div class="mb-3">
+        <h5 class="font-semibold text-gray-700 mb-2 text-sm">Measurements:</h5>
+
+        ${inspection.measurements.map(m => {
+            if (m.samples && m.samples.length > 1) {
+                return `
+                    <div class="bg-gray-50 rounded p-3 mb-2">
+                        <div class="flex justify-between items-start mb-2">
+                            <span class="font-semibold text-gray-800">${m.name}:</span>
+                            <span class="text-sm font-semibold ${
+                                m.overallStatus === 'fail'
+                                    ? 'text-red-600'
+                                    : m.overallStatus === 'warning'
+                                    ? 'text-amber-600'
+                                    : 'text-green-600'
+                            }">
+                                ${m.overallStatus.toUpperCase()}
+                            </span>
+                        </div>
+
+                        <div class="grid grid-cols-5 gap-2 text-xs mb-2">
+                            ${m.samples.map(s => `
+                                <div class="text-center p-1 bg-white rounded border ${
+                                    s.status === 'fail'
+                                        ? 'border-red-300'
+                                        : s.status === 'warning'
+                                        ? 'border-amber-300'
+                                        : 'border-green-300'
+                                }">
+                                    <div class="text-gray-500">#${s.sampleNumber}</div>
+                                    <div class="font-semibold">${s.value ?? 'N/A'}</div>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        ${m.statistics ? `
+                            <div class="grid grid-cols-4 gap-2 text-xs text-gray-600 bg-white p-2 rounded">
+                                <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
+                                <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
+                                <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
+                                <div><strong>Target:</strong> ${m.target}</div>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="text-sm bg-gray-50 rounded px-2 py-1 flex justify-between items-center mb-1">
+                        <span class="font-medium">${m.name}:</span>
+                        <span>${m.actual ?? 'N/A'} ${m.unit || ''}</span>
+                    </div>
+                `;
+            }
+        }).join('')}
+    </div>
+</div>
 `).join('');
+console.log('renderAllReports END');
+
 
             
             ${inspection.notes ? `<p class="text-sm text-gray-600 italic bg-gray-50 rounded p-2"><strong>Notes:</strong> ${inspection.notes}</p>` : ''}
