@@ -406,6 +406,7 @@ InspectionManager.clearForm = function() {
 };
 
 // Report Visibility – New Inspection Format Only
+// Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
     return inspection.measurements.map(m => `
         <div class="bg-gray-50 rounded p-3 mb-3 border">
@@ -423,7 +424,7 @@ function renderInspectionMeasurements(inspection) {
                 </span>
             </div>
 
-            <!-- Sample values -->
+            <!-- Sample values (works for 1 or many samples) -->
             <div class="grid grid-cols-5 gap-2 text-xs mb-2">
                 ${m.samples.map(s => `
                     <div class="text-center p-1 bg-white rounded border">
