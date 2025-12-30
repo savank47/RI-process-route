@@ -408,14 +408,25 @@ InspectionManager.clearForm = function() {
 
 // Report Visibility – New Inspection Format Only
 function renderInspectionMeasurements(inspection) {
+    // 🔒 SAFETY GUARD
+    if (!inspection.measurements || !Array.isArray(inspection.measurements)) {
+        return `
+            <div class="text-sm text-gray-500 italic">
+                No measurement data available for this inspection.
+            </div>
+        `;
+    }
+
     return inspection.measurements.map(m => {
         const status = m.overallStatus || 'pass';
+        const samples = Array.isArray(m.samples) ? m.samples : [];
+        const stats = m.statistics || {};
 
         return `
             <div class="bg-gray-50 rounded p-3 mb-3 border">
 
                 <div class="flex justify-between mb-1">
-                    <span class="font-semibold">${m.name}</span>
+                    <span class="font-semibold">${m.name || 'Unnamed dimension'}</span>
                     <span class="text-sm font-semibold ${
                         status === 'fail'
                             ? 'text-red-600'
@@ -428,7 +439,7 @@ function renderInspectionMeasurements(inspection) {
                 </div>
 
                 <div class="grid grid-cols-5 gap-2 text-xs mb-2">
-                    ${m.samples.map(s => `
+                    ${samples.map(s => `
                         <div class="text-center p-1 border rounded">
                             <div>#${s.sampleNumber}</div>
                             <div class="font-semibold">${s.value}</div>
@@ -436,24 +447,23 @@ function renderInspectionMeasurements(inspection) {
                     `).join('')}
                 </div>
 
-                <div class="grid grid-cols-4 gap-2 text-xs bg-white p-2 rounded">
-                    <div><strong>Min:</strong> ${m.statistics.min.toFixed(3)}</div>
-                    <div><strong>Max:</strong> ${m.statistics.max.toFixed(3)}</div>
-                    <div><strong>Avg:</strong> ${m.statistics.avg.toFixed(3)}</div>
-                    <div><strong>Target:</strong> ${m.target}</div>
-                </div>
-
+                ${stats.min !== undefined ? `
+                    <div class="grid grid-cols-4 gap-2 text-xs bg-white p-2 rounded">
+                        <div><strong>Min:</strong> ${stats.min.toFixed(3)}</div>
+                        <div><strong>Max:</strong> ${stats.max.toFixed(3)}</div>
+                        <div><strong>Avg:</strong> ${stats.avg.toFixed(3)}</div>
+                        <div><strong>Target:</strong> ${m.target || '-'}</div>
+                    </div>
+                ` : ''}
             </div>
         `;
     }).join('');
 }
 
 
-
-
 // Render all reports
 // Render all reports
-InspectionManager.renderAllReports = async function() {
+InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
     const batchFilter = document.getElementById('inspectionFilterBatch').value;
     const statusFilter = document.getElementById('inspectionFilterStatus').value;
@@ -461,8 +471,9 @@ InspectionManager.renderAllReports = async function() {
     const batches = await api.getBatches();
     let allInspections = [];
 
+    // Collect inspections from all batches
     batches.forEach(batch => {
-        if (batch.inspections && batch.inspections.length > 0) {
+        if (Array.isArray(batch.inspections)) {
             batch.inspections.forEach((inspection, idx) => {
                 allInspections.push({
                     ...inspection,
@@ -475,17 +486,26 @@ InspectionManager.renderAllReports = async function() {
         }
     });
 
+    // Apply filters
     if (batchFilter !== 'all') {
         allInspections = allInspections.filter(i => i.batchId === batchFilter);
     }
+
     if (statusFilter !== 'all') {
         allInspections = allInspections.filter(i => i.overallStatus === statusFilter);
     }
 
+    // 🔒 CRITICAL: remove invalid / legacy inspections
+    allInspections = allInspections.filter(i =>
+        Array.isArray(i.measurements) && i.measurements.length > 0
+    );
+
+    // Sort newest first
     allInspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
     if (allInspections.length === 0) {
-        container.innerHTML = '<p class="text-gray-500 text-center py-8">No inspection reports found.</p>';
+        container.innerHTML =
+            '<p class="text-gray-500 text-center py-8">No inspection reports found.</p>';
         return;
     }
 
@@ -497,7 +517,7 @@ InspectionManager.renderAllReports = async function() {
 
     container.innerHTML = allInspections.map((inspection, index) => `
         <div id="inspection-report-${index}"
-             class="border-l-4 ${statusColors[inspection.overallStatus]} bg-white rounded-lg p-4 shadow-sm mb-4">
+             class="border-l-4 ${statusColors[inspection.overallStatus] || ''} bg-white rounded-lg p-4 shadow-sm mb-4">
 
             <div class="flex justify-between items-start mb-3">
                 <div>
@@ -508,13 +528,13 @@ InspectionManager.renderAllReports = async function() {
                         ${new Date(inspection.timestamp).toLocaleString()}
                     </p>
                     <p class="text-sm text-gray-600">
-                        Inspector: ${inspection.inspector}
+                        Inspector: ${inspection.inspector || '—'}
                     </p>
                 </div>
 
                 <div class="flex flex-col items-end gap-2">
-                    <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus]}">
-                        ${inspection.overallStatus.toUpperCase()}
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold ${statusColors[inspection.overallStatus] || ''}">
+                        ${(inspection.overallStatus || 'approved').toUpperCase()}
                     </span>
 
                     <button
@@ -525,12 +545,14 @@ InspectionManager.renderAllReports = async function() {
                     </button>
                 </div>
             </div>
-                <div class="mt-3">
-                    ${renderInspectionMeasurements(inspection)}
-                </div>
+
+            <div class="mt-3">
+                ${renderInspectionMeasurements(inspection)}
+            </div>
         </div>
     `).join('');
 };
+
 
 // Filter reports
 InspectionManager.filterReports = async function() {
