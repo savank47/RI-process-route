@@ -463,11 +463,7 @@ InspectionManager.renderAllReports = async function() {
                     ${inspection.sampleSize ? `<p class="text-sm text-blue-600"><i class="fas fa-vial mr-1"></i>${inspection.sampleSize} samples measured (${inspection.samplingPercentage}% of batch)</p>` : ''}
                 </div>
                     <button
-                      onclick="InspectionManager.downloadInspectionPDF(
-                        ${index},
-                        '${inspection.batchNumber}',
-                        '${inspection.itemName}'
-                      )"
+                      onclick="InspectionManager.downloadInspectionPDF(${index})"
                       class="mt-2 px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700">
                       Download PDF
                     </button>
@@ -567,7 +563,7 @@ InspectionManager.generateReport = async function() {
 };
 
 // ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
-InspectionManager.downloadInspectionPDF = function(index, batchNumber, itemName) {
+InspectionManager.downloadInspectionPDF = function(index) {
     const element = document.getElementById(`inspection-report-${index}`);
 
     if (!element) {
@@ -575,12 +571,16 @@ InspectionManager.downloadInspectionPDF = function(index, batchNumber, itemName)
         return;
     }
 
-    const safeItemName = itemName.replace(/[^a-z0-9]/gi, '_');
-    const fileName = `Inspection_${batchNumber}_${safeItemName}.pdf`;
+    // Read values safely from DOM
+    const titleEl = element.querySelector('h4');
+    const titleText = titleEl ? titleEl.textContent : 'Inspection_Report';
+
+    // Extract batch + item safely
+    const safeName = titleText.replace(/[^a-z0-9]/gi, '_');
 
     const options = {
         margin: 10,
-        filename: fileName,
+        filename: `Inspection_${safeName}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
         html2canvas: { scale: 2 },
         jsPDF: {
