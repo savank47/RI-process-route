@@ -4,6 +4,7 @@
 // Purpose: Inspection reports with multi-sample support (SAMPLE-FOCUSED LAYOUT)
 // Runs on: Browser (Client-side)
 // ========================================
+console.log('inspection.js loaded');
 
 class InspectionManager {}
 
