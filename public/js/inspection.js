@@ -636,41 +636,56 @@ InspectionManager.generateReport = async function() {
 // ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
 InspectionManager.downloadInspectionPDF = function (index) {
     const source = document.getElementById(`inspection-report-${index}`);
+    if (!source) return;
 
-    if (!source) {
-        console.error('PDF source not found');
-        return;
-    }
-
-    // 🔒 CLONE NODE (CRITICAL FIX)
+    // Clone the node (CRITICAL)
     const clone = source.cloneNode(true);
 
-    // Optional: remove buttons from PDF
+    // Remove buttons from PDF
     clone.querySelectorAll('button').forEach(btn => btn.remove());
 
-    // Put clone off-screen
+    // 🔥 REMOVE TAILWIND COLOR CLASSES (KEY FIX)
+    clone.querySelectorAll('*').forEach(el => {
+        el.classList.remove(
+            'bg-green-100', 'bg-amber-100', 'bg-red-100',
+            'text-green-800', 'text-amber-800', 'text-red-800',
+            'border-green-300', 'border-amber-300', 'border-red-300',
+            'text-green-600', 'text-amber-600', 'text-red-600'
+        );
+
+        // Force safe inline colors
+        el.style.color = '#000';
+        el.style.backgroundColor = '#fff';
+        el.style.borderColor = '#ccc';
+    });
+
+    // Offscreen container
     const wrapper = document.createElement('div');
     wrapper.style.position = 'fixed';
     wrapper.style.left = '-9999px';
     wrapper.appendChild(clone);
     document.body.appendChild(wrapper);
 
-    const filename = `Inspection_${index + 1}.pdf`;
+    const filename = `Inspection_Report_${index + 1}.pdf`;
 
     html2pdf()
         .set({
             margin: 10,
             filename,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 1 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            image: { type: 'jpeg', quality: 0.95 },
+            html2canvas: {
+                scale: 1,
+                backgroundColor: '#ffffff'
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            }
         })
         .from(clone)
         .save()
-        .then(() => {
-            // 🧹 CLEANUP (IMPORTANT)
-            document.body.removeChild(wrapper);
-        })
+        .then(() => document.body.removeChild(wrapper))
         .catch(err => {
             console.error('PDF generation failed:', err);
             document.body.removeChild(wrapper);
