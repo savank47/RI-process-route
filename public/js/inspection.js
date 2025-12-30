@@ -634,26 +634,25 @@ InspectionManager.generateReport = async function() {
 };
 
 // ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
-InspectionManager.downloadInspectionPDF = function(index) {
-    const element = document.getElementById(`inspection-report-${index}`);
+InspectionManager.downloadInspectionPDF = function (index) {
+    const elementId = `inspection-report-${index}`;
+    const element = document.getElementById(elementId);
 
+    // 🔒 HARD SAFETY CHECK
     if (!element) {
-        UI.showToast('Inspection report not found', 'error');
+        console.error('PDF target not found:', elementId);
+        alert('Unable to generate PDF. Report element not found.');
         return;
     }
 
-    // Read values safely from DOM
-    const titleEl = element.querySelector('h4');
-    const titleText = titleEl ? titleEl.textContent : 'Inspection_Report';
-
-    // Extract batch + item safely
-    const safeName = titleText.replace(/[^a-z0-9]/gi, '_');
-
-    const options = {
+    const opt = {
         margin: 10,
-        filename: `Inspection_${safeName}.pdf`,
+        filename: `Inspection_Report_${index + 1}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: {
+            scale: 1,
+            useCORS: true
+        },
         jsPDF: {
             unit: 'mm',
             format: 'a4',
@@ -661,8 +660,13 @@ InspectionManager.downloadInspectionPDF = function(index) {
         }
     };
 
-    html2pdf().set(options).from(element).save();
+    // ✅ THIS IS THE ACTUAL DOWNLOAD
+    html2pdf()
+        .set(opt)
+        .from(element)
+        .save();
 };
+
 
 
 // Make globally accessible
