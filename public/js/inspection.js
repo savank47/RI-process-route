@@ -360,6 +360,7 @@ InspectionManager.saveFromTab = async function() {
             name: dim.name,
             target: `${dim.minValue} - ${dim.maxValue} ${dim.unit}`,
             unit: dim.unit,
+            actual: stats.avg,
             samples: samples,
             statistics: stats,
             overallStatus: samples.some(s => s.status === 'fail') ? 'fail' : 
