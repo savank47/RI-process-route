@@ -420,32 +420,32 @@ InspectionManager.saveFromTab = async function () {
 };
 
 
-    const inspection = {
-        timestamp: new Date().toISOString(),
-        inspector: inspectorName,
-        sampleSize: this.currentSampleSize,
-        batchQuantity: batch.quantity,
-        samplingPercentage: ((this.currentSampleSize / batch.quantity) * 100).toFixed(1),
-        measurements: measurements,
-        notes: notes,
-        overallStatus: measurements.some(m => m.overallStatus === 'fail') ? 'rejected' : 
-                      measurements.some(m => m.overallStatus === 'warning') ? 'conditional' : 'approved'
-    };
+//     const inspection = {
+//         timestamp: new Date().toISOString(),
+//         inspector: inspectorName,
+//         sampleSize: this.currentSampleSize,
+//         batchQuantity: batch.quantity,
+//         samplingPercentage: ((this.currentSampleSize / batch.quantity) * 100).toFixed(1),
+//         measurements: measurements,
+//         notes: notes,
+//         overallStatus: measurements.some(m => m.overallStatus === 'fail') ? 'rejected' : 
+//                       measurements.some(m => m.overallStatus === 'warning') ? 'conditional' : 'approved'
+//     };
 
-    if (!batch.inspections) batch.inspections = [];
-    batch.inspections.push(inspection);
+//     if (!batch.inspections) batch.inspections = [];
+//     batch.inspections.push(inspection);
 
-    try {
-        await api.updateBatch(batchId, { inspections: batch.inspections });
-        this.clearForm();
-        await this.renderAllReports();
-        UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()} (${this.currentSampleSize} samples)`, 
-                    inspection.overallStatus === 'approved' ? 'success' : 'info');
-    } catch (error) {
-        console.error('Failed to save inspection:', error);
-        UI.showToast('Failed to save inspection', 'error');
-    }
-};
+//     try {
+//         await api.updateBatch(batchId, { inspections: batch.inspections });
+//         this.clearForm();
+//         await this.renderAllReports();
+//         UI.showToast(`Inspection saved: ${inspection.overallStatus.toUpperCase()} (${this.currentSampleSize} samples)`, 
+//                     inspection.overallStatus === 'approved' ? 'success' : 'info');
+//     } catch (error) {
+//         console.error('Failed to save inspection:', error);
+//         UI.showToast('Failed to save inspection', 'error');
+//     }
+// };
 
 
 // Clear form
