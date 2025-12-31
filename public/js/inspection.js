@@ -292,11 +292,17 @@ function renderReportCard(report, index) {
                     </div>
                 </div>
 
-                <button class="delete-btn subtle"
-                    title="Delete report"
-                    onclick="InspectionManager.deleteInspection(${index})">
-                    Delete
-                </button>
+               <div class="report-actions">
+                 <button class="export-btn subtle"
+                         onclick="event.stopPropagation(); exportSingleReportPDF(this)">
+                   Export PDF
+                 </button>
+               
+                 <button class="delete-btn subtle"
+                         onclick="event.stopPropagation(); InspectionManager.deleteInspection(${index})">
+                   Delete
+                 </button>
+               </div>
             </div>
             <div class="report-body">
                ${report.measurements.map(renderDimensionRow).join('')}
