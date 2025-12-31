@@ -208,8 +208,8 @@
 }
 
 .sample-chip.pass {
-  border-left-color: #22c55e;
-  background: #f0fdf4;
+  background: #fafafa;
+  border-left-color: #e5e7eb;
 }
 
 .deviation {
