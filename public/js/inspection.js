@@ -641,54 +641,33 @@ InspectionManager.downloadInspectionPDF = function (index) {
         return;
     }
 
-    // Clone report HTML
-    const html = source.outerHTML
-        .replace(/class="[^"]*"/g, ''); // strip ALL classes
+    // 1️⃣ Find Tailwind stylesheet(s)
+    const tailwindLinks = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
+        .filter(link =>
+            link.href.includes('tailwind') ||
+            link.href.includes('cdn.jsdelivr') ||
+            link.href.includes('unpkg')
+        );
 
-    // Create isolated iframe (NO Tailwind CSS)
-    const iframe = document.createElement('iframe');
-    iframe.style.position = 'fixed';
-    iframe.style.left = '-10000px';
-    iframe.style.top = '0';
-    iframe.width = '794';
-    iframe.height = '1123';
-    document.body.appendChild(iframe);
+    // 2️⃣ Disable Tailwind CSS temporarily
+    tailwindLinks.forEach(l => l.disabled = true);
 
-    const doc = iframe.contentDocument || iframe.contentWindow.document;
+    // 3️⃣ Clone report
+    const clone = source.cloneNode(true);
 
-    // Write CLEAN HTML with BASIC CSS ONLY
-    doc.open();
-    doc.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <style>
-                body {
-                    font-family: Arial, sans-serif;
-                    background: #ffffff;
-                    color: #000000;
-                    padding: 16px;
-                }
-                h4 { margin: 0 0 8px 0; }
-                .section { margin-bottom: 12px; }
-                .row { display: flex; gap: 8px; }
-                .box {
-                    border: 1px solid #ccc;
-                    padding: 6px;
-                    font-size: 12px;
-                }
-            </style>
-        </head>
-        <body>
-            ${html}
-        </body>
-        </html>
-    `);
-    doc.close();
+    // Remove buttons
+    clone.querySelectorAll('button').forEach(b => b.remove());
 
-    const target = doc.body;
+    // Offscreen container
+    const wrapper = document.createElement('div');
+    wrapper.style.position = 'fixed';
+    wrapper.style.left = '-10000px';
+    wrapper.style.top = '0';
+    wrapper.style.background = '#ffffff';
+    wrapper.appendChild(clone);
+    document.body.appendChild(wrapper);
 
+    // 4️⃣ Generate PDF
     html2pdf()
         .set({
             margin: 10,
@@ -704,14 +683,17 @@ InspectionManager.downloadInspectionPDF = function (index) {
                 orientation: 'portrait'
             }
         })
-        .from(target)
+        .from(clone)
         .save()
         .then(() => {
-            document.body.removeChild(iframe);
+            // Cleanup
+            document.body.removeChild(wrapper);
+            tailwindLinks.forEach(l => l.disabled = false);
         })
         .catch(err => {
             console.error('PDF generation failed:', err);
-            document.body.removeChild(iframe);
+            document.body.removeChild(wrapper);
+            tailwindLinks.forEach(l => l.disabled = false);
             alert('PDF generation failed');
         });
 };
