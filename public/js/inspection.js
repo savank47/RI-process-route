@@ -229,15 +229,15 @@ InspectionManager.renderAllReports = async function () {
         const overallStatus = getOverallInspectionStatus(i.measurements);
 
         return `
-        <div class="
-                border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'}
-                border border-gray-200
-                bg-white
-                rounded
-                p-4
-                mb-8
-                shadow-sm
-            ">
+            <div class="
+                    border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'}
+                    bg-white
+                    rounded-lg
+                    shadow-md
+                    p-5
+                    mb-10
+                ">
+
             <!-- Header -->
             <div class="flex justify-between items-start mb-3">
                 <div>
@@ -263,7 +263,7 @@ InspectionManager.renderAllReports = async function () {
 
             <!-- Dimensions -->
             ${i.measurements.map(m => `
-                <div class="mb-5 pl-3 border-l-2 border-gray-200">
+                <div class="mb-6 bg-gray-50 rounded-md p-4 shadow-sm">
                     <div class="flex justify-between items-center mb-1">
                         <div class="font-semibold text-gray-800">${m.name}</div>
                         <span class="text-xs font-bold ${
