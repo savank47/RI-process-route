@@ -641,56 +641,63 @@ InspectionManager.downloadInspectionPDF = function (index) {
         return;
     }
 
-    // 1️⃣ Clone content
+    // 1️⃣ Clone the report
     const clone = source.cloneNode(true);
 
-    // 2️⃣ Remove buttons / interactive elements
+    // 2️⃣ REMOVE ALL TAILWIND CLASSES (🔥 CRITICAL FIX)
+    clone.querySelectorAll('*').forEach(el => {
+        el.removeAttribute('class');   // <— THIS removes oklch completely
+
+        // Apply safe inline styles
+        el.style.color = '#000';
+        el.style.backgroundColor = '#fff';
+        el.style.borderColor = '#ccc';
+        el.style.boxShadow = 'none';
+        el.style.fontFamily = 'Arial, sans-serif';
+    });
+
+    // Remove buttons from PDF
     clone.querySelectorAll('button').forEach(b => b.remove());
 
-    // 3️⃣ Create isolated sandbox container
-    const sandbox = document.createElement('div');
-    sandbox.style.position = 'fixed';
-    sandbox.style.left = '-10000px';
-    sandbox.style.top = '0';
-    sandbox.style.width = '794px'; // A4 width in px
-    sandbox.style.background = '#ffffff';
-    sandbox.style.color = '#000000';
-    sandbox.appendChild(clone);
-    document.body.appendChild(sandbox);
-
-    // 4️⃣ Force safe styles (NO Tailwind colors)
-    sandbox.querySelectorAll('*').forEach(el => {
-        el.style.backgroundColor = '#ffffff';
-        el.style.color = '#000000';
-        el.style.borderColor = '#cccccc';
-        el.style.boxShadow = 'none';
-    });
+    // 3️⃣ Create isolated container
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '-10000px';
+    container.style.top = '0';
+    container.style.width = '794px'; // A4 width
+    container.appendChild(clone);
+    document.body.appendChild(container);
 
     const filename = `Inspection_Report_${index + 1}.pdf`;
 
-    // 5️⃣ Generate PDF (NO async listeners, NO iframe reuse)
-    html2pdf(sandbox, {
-        margin: 10,
-        filename,
-        image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: {
-            scale: 1,
-            backgroundColor: '#ffffff',
-            useCORS: true
-        },
-        jsPDF: {
-            unit: 'mm',
-            format: 'a4',
-            orientation: 'portrait'
-        }
-    }).then(() => {
-        document.body.removeChild(sandbox);
-    }).catch(err => {
-        console.error('PDF generation failed:', err);
-        document.body.removeChild(sandbox);
-        alert('Failed to generate PDF');
-    });
+    // 4️⃣ Generate PDF
+    html2pdf()
+        .set({
+            margin: 10,
+            filename,
+            image: { type: 'jpeg', quality: 0.95 },
+            html2canvas: {
+                scale: 1,
+                backgroundColor: '#ffffff'
+            },
+            jsPDF: {
+                unit: 'mm',
+                format: 'a4',
+                orientation: 'portrait'
+            }
+        })
+        .from(clone)
+        .save()
+        .then(() => {
+            document.body.removeChild(container);
+        })
+        .catch(err => {
+            console.error('PDF generation failed:', err);
+            document.body.removeChild(container);
+            alert('Failed to generate PDF');
+        });
 };
+
 
 
 
