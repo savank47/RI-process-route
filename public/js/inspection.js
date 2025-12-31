@@ -292,7 +292,8 @@ function renderReportCard(report, index) {
                     </div>
                 </div>
 
-                <button class="delete-btn"
+                <button class="delete-btn subtle"
+                    title="Delete report"
                     onclick="InspectionManager.deleteInspection(${index})">
                     Delete
                 </button>
