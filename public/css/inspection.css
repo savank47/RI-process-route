@@ -320,6 +320,10 @@
    Accordion End
    ============================== */
 
+
+/* ==============================
+   Export Report
+   ============================== */
 .report-actions {
   display: flex;
   align-items: center;
@@ -330,5 +334,70 @@
   .report-card {
     page-break-inside: avoid;
   }
+}
+
+@media print {
+
+  /* Force true document mode */
+  html, body {
+    width: 210mm;
+    height: auto;
+    margin: 0;
+    padding: 0;
+    background: #ffffff !important;
+  }
+
+  /* Remove app chrome */
+  header,
+  footer,
+  nav,
+  .export-btn,
+  .delete-btn {
+    display: none !important;
+  }
+
+  /* Disable shadows and rounded UI */
+  * {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    background-image: none !important;
+  }
+
+  /* Ensure only inspection content prints */
+  body * {
+    visibility: hidden;
+  }
+
+  #content-inspections,
+  #content-inspections * {
+    visibility: visible;
+  }
+
+  #content-inspections {
+    position: static;
+    width: 100%;
+    padding: 12mm;
+  }
+
+  /* Make report cards look like document sections */
+  .report-card {
+    border: 1px solid #d1d5db;
+    margin-bottom: 12mm;
+    padding: 8mm;
+    page-break-inside: avoid;
+  }
+
+  /* Dimension blocks should not split */
+  .dimension-block {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Typography tuning for print */
+  body {
+    font-size: 11pt;
+    color: #000000;
+  }
+
 }
 
