@@ -397,41 +397,6 @@ function toggleInspectionReport(headerEl) {
   card.classList.toggle('open');
 }
 
-// ==============================
-// PDF Export – Single Inspection Report
-// ==============================
-
-function exportSingleReportPDF(buttonEl) {
-  const reportCard = buttonEl.closest('.report-card');
-  if (!reportCard) return;
-
-  // Save current accordion state
-  const wasOpen = reportCard.classList.contains('open');
-
-  // Ensure report is expanded
-  reportCard.classList.add('open');
-
-  // Hide all other reports
-  document.querySelectorAll('.report-card').forEach(card => {
-    if (card !== reportCard) {
-      card.style.display = 'none';
-    }
-  });
-
-  // Allow layout to settle, then print
-  setTimeout(() => {
-    window.print();
-
-    // Restore UI
-    document.querySelectorAll('.report-card').forEach(card => {
-      card.style.display = '';
-    });
-
-    if (!wasOpen) {
-      reportCard.classList.remove('open');
-    }
-  }, 300);
-}
 
 
 /* ==============================
