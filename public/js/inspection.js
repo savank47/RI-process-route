@@ -1,7 +1,6 @@
 // ========================================
 // inspection.js
-// Purpose: Sample-based inspection entry & reporting
-// Scope: UI + data only (NO PDF, NO EXPORT)
+// Purpose: Inspection Reports (SAFE + EXPLICIT)
 // ========================================
 
 /* ==============================
@@ -39,7 +38,6 @@ function getDeviation(value, min, max) {
 
 function getDimensionStatus(measurement) {
     const samples = normalizeArray(measurement.samples);
-
     return samples.some(s =>
         isOutOfTolerance(s.value, measurement.min, measurement.max)
     )
@@ -62,11 +60,21 @@ function getOutOfToleranceSampleCount(measurements) {
 }
 
 /* ==============================
-   Render entry point
+   🔍 EXPLICIT TAB INITIALIZER
    ============================== */
 
-InspectionManager.renderTab = async function () {
+InspectionManager.init = async function () {
+    console.log('🔁 Initializing Inspection Reports tab');
+
+    // Render reports
     await InspectionManager.renderAllReports();
+
+    // Populate batch dropdown (defined elsewhere)
+    if (typeof populateInspectionBatchSelect === 'function') {
+        await populateInspectionBatchSelect();
+    } else {
+        console.warn('⚠ populateInspectionBatchSelect() not found');
+    }
 };
 
 /* ==============================
@@ -75,7 +83,10 @@ InspectionManager.renderTab = async function () {
 
 InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
-    if (!container) return;
+    if (!container) {
+        console.warn('⚠ inspectionReportsList not found');
+        return;
+    }
 
     container.classList.add('inspection-canvas');
 
@@ -90,7 +101,7 @@ InspectionManager.renderAllReports = async function () {
 
     const inspections = [];
 
-    // 🔒 CRITICAL FIX: normalize inspections AND measurements HERE
+    // 🔒 Normalize inspections + measurements ONCE
     batches.forEach(batch => {
         const inspectionsArr = Array.isArray(batch.inspections)
             ? batch.inspections
@@ -263,18 +274,6 @@ InspectionManager.deleteInspection = async function (inspectionIndex) {
     }
 
     await InspectionManager.renderAllReports();
-};
-
-/* ==============================
-   Clear form
-   ============================== */
-
-InspectionManager.clearForm = function () {
-    document.getElementById('inspectionFormPreview')?.classList.add('hidden');
-    document.getElementById('inspectionBatchSelect').value = '';
-    document.getElementById('inspectorName').value = '';
-    this.currentSampleSize = 1;
-    this.currentBatchForInspection = null;
 };
 
 /* ==============================
