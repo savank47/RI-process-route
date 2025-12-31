@@ -411,6 +411,7 @@ function exportSingleReportPDF(buttonEl) {
 
   // Ensure report is expanded
   reportCard.classList.add('open');
+  reportCard.classList.add('print-landscape');
 
   // Hide all other reports
   document.querySelectorAll('.report-card').forEach(card => {
@@ -426,6 +427,7 @@ function exportSingleReportPDF(buttonEl) {
     // Restore UI
     document.querySelectorAll('.report-card').forEach(card => {
       card.style.display = '';
+      card.classList.remove('print-landscape');
     });
 
     if (!wasOpen) {
