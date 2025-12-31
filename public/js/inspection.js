@@ -1,6 +1,7 @@
 // ========================================
 // inspection.js
-// Purpose: Inspection Reports (SAFE + EXPLICIT)
+// Purpose: Inspection Reports
+// Scope: UI + data only
 // ========================================
 
 /* ==============================
@@ -10,7 +11,7 @@
 const InspectionManager = {};
 
 /* ==============================
-   Utility helpers (BORING + SAFE)
+   Utility helpers (SAFE)
    ============================== */
 
 function isNumber(n) {
@@ -38,6 +39,7 @@ function getDeviation(value, min, max) {
 
 function getDimensionStatus(measurement) {
     const samples = normalizeArray(measurement.samples);
+
     return samples.some(s =>
         isOutOfTolerance(s.value, measurement.min, measurement.max)
     )
@@ -60,20 +62,16 @@ function getOutOfToleranceSampleCount(measurements) {
 }
 
 /* ==============================
-   🔍 EXPLICIT TAB INITIALIZER
+   UI TAB ENTRY POINT (IMPORTANT)
+   Called from UI.showTab('inspections')
    ============================== */
 
-InspectionManager.init = async function () {
-    console.log('🔁 Initializing Inspection Reports tab');
-
-    // Render reports
+InspectionManager.renderTab = async function () {
     await InspectionManager.renderAllReports();
 
     // Populate batch dropdown (defined elsewhere)
     if (typeof populateInspectionBatchSelect === 'function') {
         await populateInspectionBatchSelect();
-    } else {
-        console.warn('⚠ populateInspectionBatchSelect() not found');
     }
 };
 
@@ -83,10 +81,7 @@ InspectionManager.init = async function () {
 
 InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
-    if (!container) {
-        console.warn('⚠ inspectionReportsList not found');
-        return;
-    }
+    if (!container) return;
 
     container.classList.add('inspection-canvas');
 
@@ -94,14 +89,14 @@ InspectionManager.renderAllReports = async function () {
     try {
         batches = await api.getBatches();
     } catch (err) {
-        console.error('❌ Failed to load batches', err);
+        console.error('Failed to load batches', err);
         container.innerHTML = `<p>Error loading inspection reports.</p>`;
         return;
     }
 
     const inspections = [];
 
-    // 🔒 Normalize inspections + measurements ONCE
+    // Normalize inspections + measurements ONCE
     batches.forEach(batch => {
         const inspectionsArr = Array.isArray(batch.inspections)
             ? batch.inspections
@@ -284,5 +279,3 @@ window.InspectionManager = InspectionManager;
 window.saveInspectionFromTab = () => InspectionManager.saveFromTab?.();
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions?.();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
-
-console.log('✅ InspectionManager loaded (FINAL – null-safe)');
