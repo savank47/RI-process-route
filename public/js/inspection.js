@@ -236,8 +236,8 @@ InspectionManager.renderAllReports = async function () {
                 <!-- Header -->
                 <div class="report-header">
                     <div>
-                        <div class="flex items-center gap-3">
-                            <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
+                        <div class="report-title-row">
+                            <h4 class="report-title">${i.batchNumber} – ${i.itemName}</h4>
                             <span class="report-status ${overallStatus}">
                                 ${overallStatus.toUpperCase()}
                             </span>
