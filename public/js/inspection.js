@@ -188,16 +188,19 @@ InspectionManager.renderAllReports = async function () {
     // Flatten inspections and retain batchId for delete
     batches.forEach(b => {
         (b.inspections || []).forEach(i => {
-            if (Array.isArray(i.measurements)) {
-                inspections.push({
-                    ...i,
-                    batchId: b._id,
-                    batchNumber: b.batchNumber,
-                    itemName: b.itemName
-                });
-            }
+    
+            // 🔒 Skip malformed / legacy inspections
+            if (!i || !Array.isArray(i.measurements)) return;
+    
+            inspections.push({
+                ...i,
+                batchId: b._id,
+                batchNumber: b.batchNumber,
+                itemName: b.itemName
+            });
         });
     });
+
 
     this.currentRenderedInspections = inspections;
 
