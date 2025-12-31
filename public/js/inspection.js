@@ -11,17 +11,27 @@
 const InspectionManager = {};
 
 /* ==============================
-   Utility helpers
+   Utility helpers (DEFENSIVE)
    ============================== */
 
+function normalizeArray(arr) {
+    return Array.isArray(arr) ? arr : [];
+}
+
+function isNumber(n) {
+    return typeof n === 'number' && !Number.isNaN(n);
+}
+
 function isOutOfTolerance(value, min, max) {
-    if (typeof value !== 'number') return false;
-    if (typeof min !== 'number' || typeof max !== 'number') return false;
+    if (!isNumber(value)) return false;
+    if (!isNumber(min) || !isNumber(max)) return false;
     return value < min || value > max;
 }
 
 function getDeviation(value, min, max) {
-    if (typeof value !== 'number') return null;
+    if (!isNumber(value)) return null;
+    if (!isNumber(min) || !isNumber(max)) return null;
+
     if (value < min) return (value - min).toFixed(2);
     if (value > max) return (value - max).toFixed(2);
     return null;
@@ -33,9 +43,9 @@ function getDeviation(value, min, max) {
  * - otherwise "ok"
  */
 function getDimensionStatus(measurement) {
-    if (!Array.isArray(measurement.samples)) return 'ok';
+    const samples = normalizeArray(measurement.samples);
 
-    return measurement.samples.some(s =>
+    return samples.some(s =>
         isOutOfTolerance(s.value, measurement.min, measurement.max)
     )
         ? 'out'
@@ -45,15 +55,12 @@ function getDimensionStatus(measurement) {
 /**
  * Report-level summary:
  * Count UNIQUE samples that are out of tolerance
- * (a sample is counted once even if multiple dimensions fail)
  */
 function getOutOfToleranceSampleCount(measurements) {
     const outSamples = new Set();
 
-    measurements.forEach(m => {
-        if (!Array.isArray(m.samples)) return;
-
-        m.samples.forEach(s => {
+    normalizeArray(measurements).forEach(m => {
+        normalizeArray(m.samples).forEach(s => {
             if (isOutOfTolerance(s.value, m.min, m.max)) {
                 outSamples.add(s.sampleNumber);
             }
@@ -81,24 +88,34 @@ InspectionManager.renderAllReports = async function () {
 
     container.classList.add('inspection-canvas');
 
-    const batches = await api.getBatches();
-    let inspections = [];
+    let batches = [];
+    try {
+        batches = await api.getBatches();
+    } catch (err) {
+        console.error('Failed to load batches', err);
+        container.innerHTML = `<p>Error loading inspection reports.</p>`;
+        return;
+    }
 
-    // Collect inspections from all batches
+    const inspections = [];
+
     batches.forEach(batch => {
-        (batch.inspections || []).forEach((inspection, inspectionIndex) => {
+        normalizeArray(batch.inspections).forEach((inspection, inspectionIndex) => {
             inspections.push({
                 ...inspection,
                 batchId: batch._id,
                 inspectionIndex,
-                batchNumber: batch.batchNumber,
-                itemName: batch.itemName
+                batchNumber: batch.batchNumber || '—',
+                itemName: batch.itemName || '—'
             });
         });
     });
 
-    // Newest first
-    inspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    inspections.sort((a, b) => {
+        const ta = new Date(a.timestamp).getTime() || 0;
+        const tb = new Date(b.timestamp).getTime() || 0;
+        return tb - ta;
+    });
 
     if (!inspections.length) {
         container.innerHTML = `<p>No inspection reports found.</p>`;
@@ -115,7 +132,8 @@ InspectionManager.renderAllReports = async function () {
    ============================== */
 
 function renderReportCard(report, index) {
-    const outCount = getOutOfToleranceSampleCount(report.measurements);
+    const measurements = normalizeArray(report.measurements);
+    const outCount = getOutOfToleranceSampleCount(measurements);
 
     return `
         <div class="report-card">
@@ -126,11 +144,13 @@ function renderReportCard(report, index) {
                     </div>
 
                     <div class="report-meta">
-                        ${new Date(report.timestamp).toLocaleString()}
+                        ${report.timestamp
+                            ? new Date(report.timestamp).toLocaleString()
+                            : '—'}
                     </div>
 
                     <div class="report-meta">
-                        Inspector: ${report.inspector}
+                        Inspector: ${report.inspector || '—'}
                     </div>
 
                     <div class="report-summary">
@@ -145,23 +165,23 @@ function renderReportCard(report, index) {
                 </button>
             </div>
 
-            ${report.measurements.map(m => renderDimensionRow(m)).join('')}
+            ${measurements.map(m => renderDimensionRow(m)).join('')}
         </div>
     `;
 }
 
 /* ==============================
-   Dimension row (hybrid "row" style)
+   Dimension block
    ============================== */
 
 function renderDimensionRow(m) {
     const status = getDimensionStatus(m);
+    const samples = normalizeArray(m.samples);
 
     return `
         <div class="dimension-block ${status === 'out' ? 'out' : ''}">
             <div class="dimension-header">
-                <div class="dimension-name">${m.name}</div>
-
+                <div class="dimension-name">${m.name || '—'}</div>
                 ${
                     status === 'out'
                         ? `<div class="dimension-status out">Out of tolerance</div>`
@@ -171,14 +191,14 @@ function renderDimensionRow(m) {
 
             <div class="dimension-target">
                 Target: ${
-                    typeof m.min === 'number' && typeof m.max === 'number'
+                    isNumber(m.min) && isNumber(m.max)
                         ? `${m.min} – ${m.max} ${m.unit || ''}`
                         : m.target || 'N/A'
                 }
             </div>
 
             <div class="sample-list">
-                ${m.samples.map(s => renderSampleChip(s, m)).join('')}
+                ${samples.map(s => renderSampleChip(s, m)).join('')}
             </div>
         </div>
     `;
@@ -201,11 +221,11 @@ function renderSampleChip(sample, measurement) {
 
     return `
         <div class="sample-chip ${out ? 'fail' : ''}">
-            <div class="sample-label">S${sample.sampleNumber}</div>
+            <div class="sample-label">S${sample.sampleNumber ?? '—'}</div>
 
             <div class="sample-value">
                 ${sample.value ?? '—'}
-                ${sample.value !== null && measurement.unit ? ` ${measurement.unit}` : ''}
+                ${sample.value != null && measurement.unit ? ` ${measurement.unit}` : ''}
             </div>
 
             ${
@@ -228,39 +248,45 @@ InspectionManager.deleteInspection = async function (inspectionIndex) {
     let counter = 0;
 
     for (const batch of batches) {
-        if (!batch.inspections) continue;
+        const inspections = normalizeArray(batch.inspections);
 
-        if (inspectionIndex < counter + batch.inspections.length) {
-            batch.inspections.splice(inspectionIndex - counter, 1);
-            await api.updateBatch(batch._id, {
-                inspections: batch.inspections
-            });
+        if (inspectionIndex < counter + inspections.length) {
+            inspections.splice(inspectionIndex - counter, 1);
+            await api.updateBatch(batch._id, { inspections });
             break;
         }
 
-        counter += batch.inspections.length;
+        counter += inspections.length;
     }
 
     await InspectionManager.renderAllReports();
 };
 
-// --------------------
-// Clear
-// --------------------
+/* ==============================
+   Clear form
+   ============================== */
+
 InspectionManager.clearForm = function () {
-    document.getElementById('inspectionFormPreview').classList.add('hidden');
-    document.getElementById('inspectionBatchSelect').value = '';
-    document.getElementById('inspectorName').value = '';
+    const preview = document.getElementById('inspectionFormPreview');
+    if (preview) preview.classList.add('hidden');
+
+    const batchSelect = document.getElementById('inspectionBatchSelect');
+    if (batchSelect) batchSelect.value = '';
+
+    const inspectorInput = document.getElementById('inspectorName');
+    if (inspectorInput) inspectorInput.value = '';
+
     this.currentSampleSize = 1;
     this.currentBatchForInspection = null;
 };
 
-// --------------------
-// Globals
-// --------------------
+/* ==============================
+   Globals
+   ============================== */
+
 window.InspectionManager = InspectionManager;
-window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
-window.previewInspectionDimensions = () => InspectionManager.previewDimensions();
+window.saveInspectionFromTab = () => InspectionManager.saveFromTab?.();
+window.previewInspectionDimensions = () => InspectionManager.previewDimensions?.();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
 
-console.log('✅ InspectionManager loaded successfully');
+console.log('✅ InspectionManager loaded (SAFE MODE)');
