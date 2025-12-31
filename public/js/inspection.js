@@ -279,7 +279,7 @@ InspectionManager.renderAllReports = async function () {
 function renderReportCard(report, index) {
     return `
         <div class="report-card">
-            <div class="report-header">
+            <div class="report-header" onclick="toggleInspectionReport(this)">
                 <div>
                     <div class="report-title">
                         ${report.batchNumber} – ${report.itemName}
@@ -297,8 +297,9 @@ function renderReportCard(report, index) {
                     Delete
                 </button>
             </div>
-
-            ${report.measurements.map(renderDimensionRow).join('')}
+            <div class="report-body">
+               ${report.measurements.map(renderDimensionRow).join('')}
+            </div>
         </div>
     `;
 }
@@ -374,6 +375,20 @@ InspectionManager.clearForm = function () {
     this.currentSampleSize = 1;
     this.currentBatchForInspection = null;
 };
+
+/* ==============================
+   Accodion Logic
+   ============================== */
+function toggleInspectionReport(headerEl) {
+  const card = headerEl.closest('.report-card');
+
+  // Optional: close other open reports
+  document.querySelectorAll('.report-card.open').forEach(c => {
+    if (c !== card) c.classList.remove('open');
+  });
+
+  card.classList.toggle('open');
+}
 
 /* ==============================
    Globals
