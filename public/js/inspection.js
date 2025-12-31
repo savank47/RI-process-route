@@ -205,8 +205,8 @@ InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
 
     // Ensure report canvas background (prevents white-on-white bleed)
-    container.classList.add('bg-gray-50', 'p-6');
-    
+    container.classList.add('inspection-canvas');
+
     const batches = await api.getBatches();
     let inspections = [];
 
@@ -221,7 +221,7 @@ InspectionManager.renderAllReports = async function () {
             });
         });
     });
-
+    inspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     this.currentRenderedInspections = inspections;
 
     if (!inspections.length) {
@@ -233,26 +233,16 @@ InspectionManager.renderAllReports = async function () {
         const overallStatus = getOverallInspectionStatus(i.measurements);
 
         return `
-            <div class="
-                    border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'}
-                    bg-white
-                    rounded-lg
-                    shadow-md
-                    p-5
-                    mb-10
-                ">
-
+        <div class="report-card ${overallStatus}">
             <!-- Header -->
-            <div class="flex justify-between items-start mb-3">
+            <div class="report-header">
                 <div>
                     <div class="flex items-center gap-3">
                         <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
-                        <span class="text-xs font-semibold px-2 py-1 rounded
-                            ${overallStatus === 'approved'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'}">
+                        <span class="report-status ${overallStatus}">
                             ${overallStatus.toUpperCase()}
                         </span>
+
                     </div>
                     <p class="text-sm">${new Date(i.timestamp).toLocaleString()}</p>
                     <p class="text-sm">Inspector: ${i.inspector}</p>
@@ -267,7 +257,7 @@ InspectionManager.renderAllReports = async function () {
 
             <!-- Dimensions -->
             ${i.measurements.map(m => `
-                <div class="mb-6 bg-gray-50 rounded-md p-4 shadow-sm">
+                <div class="dimension-block">
                     <div class="flex justify-between items-center mb-1">
                         <div class="font-semibold text-gray-800">${m.name}</div>
                         <span class="text-xs font-bold ${
@@ -293,16 +283,18 @@ InspectionManager.renderAllReports = async function () {
                             const deviation = out ? getDeviation(s.value, m.min, m.max) : null;
 
                             return `
-                            <div class="px-3 py-1.5 min-w-[64px] rounded border text-center text-xs
-                                ${out
-                                    ? 'border-red-500 bg-red-50 text-red-800'
-                                    : 'border-gray-300 bg-white text-gray-800'}">
-                                <div class="font-semibold">S${s.sampleNumber}</div>
-                                <div>
-                                  ${s.value ?? '—'}
-                                  ${s.value !== null && m.unit ? ` ${m.unit}` : ''}
+                            <div class="sample-chip ${out ? 'fail' : ''}">
+                                <div class="sample-label">S${s.sampleNumber}</div>
+                            
+                                <div class="sample-value">
+                                    ${s.value ?? '—'}${s.value !== null && m.unit ? ` ${m.unit}` : ''}
                                 </div>
-                                ${out ? `<div class="text-[11px]">(${deviation > 0 ? '+' : ''}${deviation})</div>` : ''}
+                            
+                                ${out ? `
+                                    <div class="deviation">
+                                        (${deviation > 0 ? '+' : ''}${deviation})
+                                    </div>
+                                ` : ''}
                             </div>
                             `;
                         }).join('')}
