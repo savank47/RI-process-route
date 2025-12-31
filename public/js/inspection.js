@@ -225,7 +225,7 @@ InspectionManager.renderAllReports = async function () {
                 </button>
             </div>
 
-            ${i.measurements.map(m => `
+            ${Array.isArray(i.measurements) ? i.measurements.map(m => `
                 <div class="mt-2">
                     <strong>${m.name}</strong> (Target: ${m.target})
                     <div class="flex gap-2 mt-1">
@@ -238,7 +238,7 @@ InspectionManager.renderAllReports = async function () {
                 </div>
             `).join('')}
         </div>
-    `).join('');
+    `).join('') : ''}
 };
 
 // --------------------
