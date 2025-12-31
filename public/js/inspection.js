@@ -175,34 +175,27 @@ InspectionManager.saveFromTab = async function () {
 };
 
 // --------------------
-// STATUS HELPERS
+// STATUS + DEVIATION HELPERS
 // --------------------
+function isOutOfTolerance(value, min, max) {
+    return typeof value === 'number' && (value < min || value > max);
+}
+
+function getDeviation(value, min, max) {
+    const nominal = (min + max) / 2;
+    return (value - nominal).toFixed(2);
+}
+
 function getDimensionStatus(m) {
-    const failed = m.samples.some(
-        s => typeof s.value === 'number' && (s.value < m.min || s.value > m.max)
-    );
-    if (failed) return 'fail';
-
-    const nearLimit = m.samples.some(s => {
-        if (typeof s.value !== 'number') return false;
-        const range = m.max - m.min;
-        const margin = range * 0.1;
-        return s.value <= m.min + margin || s.value >= m.max - margin;
-    });
-
-    return nearLimit ? 'conditional' : 'pass';
+    return m.samples.some(s => isOutOfTolerance(s.value, m.min, m.max))
+        ? 'fail'
+        : 'pass';
 }
 
 function getOverallInspectionStatus(measurements) {
-    let hasConditional = false;
-
-    for (const m of measurements) {
-        const status = getDimensionStatus(m);
-        if (status === 'fail') return 'rejected';
-        if (status === 'conditional') hasConditional = true;
-    }
-
-    return hasConditional ? 'conditional' : 'approved';
+    return measurements.some(m => getDimensionStatus(m) === 'fail')
+        ? 'rejected'
+        : 'approved';
 }
 
 // --------------------
@@ -235,19 +228,18 @@ InspectionManager.renderAllReports = async function () {
     container.innerHTML = inspections.map((i, index) => {
         const overallStatus = getOverallInspectionStatus(i.measurements);
 
-        const overallStyles = {
-            approved: 'border-green-500 bg-green-100 text-green-800',
-            conditional: 'border-amber-500 bg-amber-100 text-amber-800',
-            rejected: 'border-red-500 bg-red-100 text-red-800'
-        };
-
         return `
-        <div class="border-l-4 ${overallStyles[overallStatus]} border rounded p-4 mb-4">
-            <div class="flex justify-between items-start">
+        <div class="border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'} border rounded p-4 mb-4">
+
+            <!-- Header -->
+            <div class="flex justify-between items-start mb-3">
                 <div>
                     <div class="flex items-center gap-3">
                         <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
-                        <span class="text-xs font-semibold px-2 py-1 rounded ${overallStyles[overallStatus]}">
+                        <span class="text-xs font-semibold px-2 py-1 rounded
+                            ${overallStatus === 'approved'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'}">
                             ${overallStatus.toUpperCase()}
                         </span>
                     </div>
@@ -262,37 +254,47 @@ InspectionManager.renderAllReports = async function () {
                 </button>
             </div>
 
-            ${i.measurements.map(m => {
-                const status = getDimensionStatus(m);
-                const styles = {
-                    pass: 'border-green-500 bg-green-50 text-green-800',
-                    conditional: 'border-amber-500 bg-amber-50 text-amber-800',
-                    fail: 'border-red-500 bg-red-50 text-red-800'
-                };
+            <!-- Dimensions -->
+            ${i.measurements.map(m => `
+                <div class="mb-4 p-3 rounded border">
 
-                return `
-                <div class="mt-4 border-l-4 ${styles[status]} p-3 rounded">
-                    <div class="flex justify-between">
+                    <div class="flex justify-between items-center mb-1">
                         <strong>${m.name}</strong>
-                        <span class="text-xs font-bold">${status.toUpperCase()}</span>
+                        <span class="text-xs font-bold ${
+                            getDimensionStatus(m) === 'fail'
+                                ? 'text-red-700'
+                                : 'text-green-700'
+                        }">
+                            ${getDimensionStatus(m).toUpperCase()}
+                        </span>
                     </div>
-                    <div class="text-xs mb-2">Target: ${m.target}</div>
+
+                    <div class="text-xs text-gray-600 mb-2">
+                        Target: ${m.min} – ${m.max} ${m.unit}
+                    </div>
+
                     <div class="flex flex-wrap gap-2">
-                        ${m.samples.map(s => `
-                            <span class="border px-2 py-1 text-xs rounded
-                                ${typeof s.value === 'number' &&
-                                  (s.value < m.min || s.value > m.max)
-                                    ? 'border-red-500 text-red-700'
-                                    : 'border-gray-300'}
-                            ">
-                                S${s.sampleNumber}: ${s.value ?? '—'}
-                            </span>
-                        `).join('')}
+                        ${m.samples.map(s => {
+                            const out = isOutOfTolerance(s.value, m.min, m.max);
+                            const deviation = out ? getDeviation(s.value, m.min, m.max) : null;
+
+                            return `
+                            <div class="px-3 py-2 rounded border text-center text-xs
+                                ${out
+                                    ? 'border-red-500 bg-red-50 text-red-800'
+                                    : 'border-gray-300 bg-white text-gray-800'}">
+                                <div class="font-semibold">S${s.sampleNumber}</div>
+                                <div>${s.value ?? '—'}</div>
+                                ${out ? `<div class="text-[11px]">(${deviation > 0 ? '+' : ''}${deviation})</div>` : ''}
+                            </div>
+                            `;
+                        }).join('')}
                     </div>
+
                 </div>
-                `;
-            }).join('')}
-        </div>`;
+            `).join('')}
+        </div>
+        `;
     }).join('');
 };
 
