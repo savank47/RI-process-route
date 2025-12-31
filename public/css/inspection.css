@@ -253,9 +253,13 @@
 
 .delete-btn.subtle {
   background: transparent;
-  color: #9ca3af;           /* gray-400 */
+  color: #6b7280; /* gray-500 */
   padding: 0.25rem 0.4rem;
   font-size: 0.65rem;
+  border-radius: 0.375rem;
+  line-height: 1;
+  border-left: 1px solid #e5e7eb;
+  padding-left: 0.75rem;
 }
 
 .delete-btn.subtle:hover {
@@ -263,6 +267,9 @@
   color: #991b1b;
 }
 
+.report-header {
+  gap: 1rem;
+}
 /* ==============================
    Accordion Start
    ============================== */
