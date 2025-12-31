@@ -293,10 +293,10 @@ function renderReportCard(report, index) {
                 </div>
 
                <div class="report-actions">
-                 <button class="export-btn subtle"
-                         onclick="event.stopPropagation(); exportSingleReportPDF(this)">
-                   Export PDF
-                 </button>
+                 // <button class="export-btn subtle"
+                 //         onclick="event.stopPropagation(); exportSingleReportPDF(this)">
+                 //   Export PDF
+                 // </button>
                
                  <button class="delete-btn subtle"
                          onclick="event.stopPropagation(); InspectionManager.deleteInspection(${index})">
