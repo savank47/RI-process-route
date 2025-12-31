@@ -191,6 +191,28 @@ InspectionManager.saveFromTab = async function () {
     );
 };
 
+///////////////////
+function getDimensionStatus(measurement) {
+    const failed = measurement.samples.some(
+        s => typeof s.value === 'number' &&
+             (s.value < measurement.min || s.value > measurement.max)
+    );
+
+    if (failed) return 'fail';
+
+    const nearLimit = measurement.samples.some(s => {
+        if (typeof s.value !== 'number') return false;
+        const range = measurement.max - measurement.min;
+        const margin = range * 0.1; // 10% tolerance band
+        return (
+            s.value <= measurement.min + margin ||
+            s.value >= measurement.max - margin
+        );
+    });
+
+    return nearLimit ? 'conditional' : 'pass';
+}
+
 // --------------------
 // Reports (View + Delete)
 // --------------------
@@ -251,21 +273,57 @@ InspectionManager.renderAllReports = async function () {
                 </button>
             </div>
 
-            ${i.measurements.map(m => `
-                <div class="mt-3">
-                    <strong>${m.name}</strong> (Target: ${m.target})
-                    <div class="flex gap-2 mt-1">
-                        ${Array.isArray(m.samples) ? m.samples.map(s => `
-                            <span class="border px-2 py-1 text-xs">
-                                S${s.sampleNumber}: ${s.value ?? '—'}
-                            </span>
-                        `).join('') : ''}
-                    </div>
+           ${i.measurements.map(m => {
+    const status = getDimensionStatus(m);
+
+    const statusStyles = {
+        pass: 'border-green-500 bg-green-50 text-green-800',
+        conditional: 'border-amber-500 bg-amber-50 text-amber-800',
+        fail: 'border-red-500 bg-red-50 text-red-800'
+    };
+
+    const statusLabels = {
+        pass: 'PASS',
+        conditional: 'CONDITIONAL',
+        fail: 'FAIL'
+    };
+
+    return `
+        <div class="mt-4 border-l-4 ${statusStyles[status]} p-3 rounded">
+            <div class="flex justify-between items-center mb-1">
+                <div class="font-semibold">
+                    ${m.name}
                 </div>
-            `).join('')}
+                <span class="text-xs font-bold">
+                    ${statusLabels[status]}
+                </span>
+            </div>
+
+            <div class="text-xs mb-2">
+                Target: ${m.target}
+            </div>
+
+            <div class="flex flex-wrap gap-2">
+                ${m.samples.map(s => {
+                    let sampleClass = 'border-gray-300';
+
+                    if (typeof s.value === 'number') {
+                        if (s.value < m.min || s.value > m.max) {
+                            sampleClass = 'border-red-500 text-red-700';
+                        }
+                    }
+
+                    return `
+                        <span class="border ${sampleClass} px-2 py-1 text-xs rounded">
+                            S${s.sampleNumber}: ${s.value ?? '—'}
+                        </span>
+                    `;
+                }).join('')}
+            </div>
         </div>
-    `).join('');
-};
+    `;
+}).join('')}
+
 
 // --------------------
 // Delete inspection (HARD DELETE)
