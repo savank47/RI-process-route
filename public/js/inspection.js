@@ -203,8 +203,6 @@ function getOverallInspectionStatus(measurements) {
 // --------------------
 InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
-
-    // Ensure report canvas background (prevents white-on-white bleed)
     container.classList.add('inspection-canvas');
 
     const batches = await api.getBatches();
@@ -221,6 +219,7 @@ InspectionManager.renderAllReports = async function () {
             });
         });
     });
+
     inspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
     this.currentRenderedInspections = inspections;
 
@@ -233,79 +232,73 @@ InspectionManager.renderAllReports = async function () {
         const overallStatus = getOverallInspectionStatus(i.measurements);
 
         return `
-        <div class="report-card ${overallStatus}">
-            <!-- Header -->
-            <div class="report-header">
-                <div>
-                    <div class="flex items-center gap-3">
-                        <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
-                        <span class="report-status ${overallStatus}">
-                            ${overallStatus.toUpperCase()}
-                        </span>
-
+            <div class="report-card ${overallStatus}">
+                <!-- Header -->
+                <div class="report-header">
+                    <div>
+                        <div class="flex items-center gap-3">
+                            <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
+                            <span class="report-status ${overallStatus}">
+                                ${overallStatus.toUpperCase()}
+                            </span>
+                        </div>
+                        <p class="text-sm">${new Date(i.timestamp).toLocaleString()}</p>
+                        <p class="text-sm">Inspector: ${i.inspector}</p>
                     </div>
-                    <p class="text-sm">${new Date(i.timestamp).toLocaleString()}</p>
-                    <p class="text-sm">Inspector: ${i.inspector}</p>
+
+                    <button
+                        class="delete-btn"
+                        onclick="InspectionManager.deleteInspection(${index})">
+                        Delete
+                    </button>
                 </div>
 
-                <button
-                    class="text-xs bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
-                    onclick="InspectionManager.deleteInspection(${index})">
-                    Delete
-                </button>
-            </div>
-
-            <!-- Dimensions -->
-           ${i.measurements.map(m => {
-    const status = getDimensionStatus(m);
-
-    return `
-        <div class="dimension-block">
-
-            <div class="dimension-header">
-                <div class="dimension-name">${m.name}</div>
-                <div class="dimension-status ${status}">
-                    ${status.toUpperCase()}
-                </div>
-            </div>
-
-            <div class="dimension-target">
-                Target: ${
-                    m.min !== undefined && m.max !== undefined
-                        ? `${m.min} – ${m.max} ${m.unit}`
-                        : m.target || 'N/A'
-                }
-            </div>
-
-            <div class="sample-list">
-                ${m.samples.map(s => {
-                    const out = isOutOfTolerance(s.value, m.min, m.max);
-                    const deviation = out
-                        ? getDeviation(s.value, m.min, m.max)
-                        : null;
+                <!-- Dimensions -->
+                ${i.measurements.map(m => {
+                    const status = getDimensionStatus(m);
 
                     return `
-                        <div class="sample-chip ${out ? 'fail' : ''}">
-                            <div class="sample-label">S${s.sampleNumber}</div>
-
-                            <div class="sample-value">
-                                ${s.value ?? '—'}${s.value !== null && m.unit ? ` ${m.unit}` : ''}
+                        <div class="dimension-block">
+                            <div class="dimension-header">
+                                <div class="dimension-name">${m.name}</div>
+                                <div class="dimension-status ${status}">
+                                    ${status.toUpperCase()}
+                                </div>
                             </div>
 
-                            ${out ? `
-                                <div class="deviation">
-                                    (${deviation > 0 ? '+' : ''}${deviation})
-                                </div>
-                            ` : ''}
+                            <div class="dimension-target">
+                                Target: ${
+                                    m.min !== undefined && m.max !== undefined
+                                        ? `${m.min} – ${m.max} ${m.unit}`
+                                        : m.target || 'N/A'
+                                }
+                            </div>
+
+                            <div class="sample-list">
+                                ${m.samples.map(s => {
+                                    const out = isOutOfTolerance(s.value, m.min, m.max);
+                                    const deviation = out
+                                        ? getDeviation(s.value, m.min, m.max)
+                                        : null;
+
+                                    return `
+                                        <div class="sample-chip ${out ? 'fail' : ''}">
+                                            <div class="sample-label">S${s.sampleNumber}</div>
+                                            <div class="sample-value">
+                                                ${s.value ?? '—'}${s.value !== null && m.unit ? ` ${m.unit}` : ''}
+                                            </div>
+                                            ${out ? `<div class="deviation">(${deviation})</div>` : ''}
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
                         </div>
                     `;
                 }).join('')}
             </div>
-
-        </div>
-    `;
-}).join('')}
-
+        `;
+    }).join('');
+};
 
 
 // --------------------
