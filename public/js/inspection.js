@@ -13,11 +13,6 @@ class InspectionManager {}
 // --------------------
 InspectionManager.currentSampleSize = 1;
 InspectionManager.currentBatchForInspection = null;
-
-/**
- * Flat list of inspections currently rendered in UI.
- * Each entry also stores batchId so delete works correctly.
- */
 InspectionManager.currentRenderedInspections = [];
 
 // --------------------
@@ -161,19 +156,10 @@ InspectionManager.saveFromTab = async function () {
         return;
     }
 
-    // ✅ Determine overall inspection status (ONCE)
-    const overallStatus = measurements.some(m =>
-        m.samples.some(s =>
-            typeof s.value === 'number' &&
-            (s.value < m.min || s.value > m.max)
-        )
-    ) ? 'rejected' : 'approved';
-
     const inspection = {
         timestamp: new Date().toISOString(),
         inspector,
         sampleSize: this.currentSampleSize,
-        overallStatus,
         measurements
     };
 
@@ -185,32 +171,38 @@ InspectionManager.saveFromTab = async function () {
     this.clearForm();
     await this.renderAllReports();
 
-    UI.showToast(
-        `Inspection saved (${overallStatus.toUpperCase()})`,
-        overallStatus === 'approved' ? 'success' : 'error'
-    );
+    UI.showToast('Inspection saved', 'success');
 };
 
-///////////////////
-function getDimensionStatus(measurement) {
-    const failed = measurement.samples.some(
-        s => typeof s.value === 'number' &&
-             (s.value < measurement.min || s.value > measurement.max)
+// --------------------
+// STATUS HELPERS
+// --------------------
+function getDimensionStatus(m) {
+    const failed = m.samples.some(
+        s => typeof s.value === 'number' && (s.value < m.min || s.value > m.max)
     );
-
     if (failed) return 'fail';
 
-    const nearLimit = measurement.samples.some(s => {
+    const nearLimit = m.samples.some(s => {
         if (typeof s.value !== 'number') return false;
-        const range = measurement.max - measurement.min;
-        const margin = range * 0.1; // 10% tolerance band
-        return (
-            s.value <= measurement.min + margin ||
-            s.value >= measurement.max - margin
-        );
+        const range = m.max - m.min;
+        const margin = range * 0.1;
+        return s.value <= m.min + margin || s.value >= m.max - margin;
     });
 
     return nearLimit ? 'conditional' : 'pass';
+}
+
+function getOverallInspectionStatus(measurements) {
+    let hasConditional = false;
+
+    for (const m of measurements) {
+        const status = getDimensionStatus(m);
+        if (status === 'fail') return 'rejected';
+        if (status === 'conditional') hasConditional = true;
+    }
+
+    return hasConditional ? 'conditional' : 'approved';
 }
 
 // --------------------
@@ -224,7 +216,6 @@ InspectionManager.renderAllReports = async function () {
     batches.forEach(b => {
         (b.inspections || []).forEach(i => {
             if (!i || !Array.isArray(i.measurements)) return;
-
             inspections.push({
                 ...i,
                 batchId: b._id,
@@ -241,27 +232,25 @@ InspectionManager.renderAllReports = async function () {
         return;
     }
 
-    container.innerHTML = inspections.map((i, index) => `
-        <div class="
-            border rounded p-4 mb-4
-            ${i.overallStatus === 'approved'
-                ? 'border-l-4 border-green-500'
-                : 'border-l-4 border-red-500'}
-        ">
+    container.innerHTML = inspections.map((i, index) => {
+        const overallStatus = getOverallInspectionStatus(i.measurements);
+
+        const overallStyles = {
+            approved: 'border-green-500 bg-green-100 text-green-800',
+            conditional: 'border-amber-500 bg-amber-100 text-amber-800',
+            rejected: 'border-red-500 bg-red-100 text-red-800'
+        };
+
+        return `
+        <div class="border-l-4 ${overallStyles[overallStatus]} border rounded p-4 mb-4">
             <div class="flex justify-between items-start">
                 <div>
                     <div class="flex items-center gap-3">
                         <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
-                        <span class="
-                            text-xs font-semibold px-2 py-1 rounded
-                            ${i.overallStatus === 'approved'
-                                ? 'bg-green-100 text-green-800'
-                                : 'bg-red-100 text-red-800'}
-                        ">
-                            ${(i.overallStatus || 'unknown').toUpperCase()}
+                        <span class="text-xs font-semibold px-2 py-1 rounded ${overallStyles[overallStatus]}">
+                            ${overallStatus.toUpperCase()}
                         </span>
                     </div>
-
                     <p class="text-sm">${new Date(i.timestamp).toLocaleString()}</p>
                     <p class="text-sm">Inspector: ${i.inspector}</p>
                 </div>
@@ -274,83 +263,53 @@ InspectionManager.renderAllReports = async function () {
             </div>
 
             ${i.measurements.map(m => {
-                // ----- dimension status -----
-                const failed = m.samples.some(
-                    s => typeof s.value === 'number' && (s.value < m.min || s.value > m.max)
-                );
-
-                const nearLimit = !failed && m.samples.some(s => {
-                    if (typeof s.value !== 'number') return false;
-                    const range = m.max - m.min;
-                    const margin = range * 0.1;
-                    return s.value <= m.min + margin || s.value >= m.max - margin;
-                });
-
-                const status = failed ? 'fail' : nearLimit ? 'conditional' : 'pass';
-
+                const status = getDimensionStatus(m);
                 const styles = {
                     pass: 'border-green-500 bg-green-50 text-green-800',
                     conditional: 'border-amber-500 bg-amber-50 text-amber-800',
                     fail: 'border-red-500 bg-red-50 text-red-800'
                 };
 
-                const labels = {
-                    pass: 'PASS',
-                    conditional: 'CONDITIONAL',
-                    fail: 'FAIL'
-                };
-
                 return `
-                    <div class="mt-4 border-l-4 ${styles[status]} p-3 rounded">
-                        <div class="flex justify-between items-center mb-1">
-                            <div class="font-semibold">${m.name}</div>
-                            <span class="text-xs font-bold">${labels[status]}</span>
-                        </div>
-
-                        <div class="text-xs mb-2">
-                            Target: ${m.target}
-                        </div>
-
-                        <div class="flex flex-wrap gap-2">
-                            ${m.samples.map(s => `
-                                <span class="
-                                    border px-2 py-1 text-xs rounded
-                                    ${typeof s.value === 'number' &&
-                                       (s.value < m.min || s.value > m.max)
-                                        ? 'border-red-500 text-red-700'
-                                        : 'border-gray-300'}
-                                ">
-                                    S${s.sampleNumber}: ${s.value ?? '—'}
-                                </span>
-                            `).join('')}
-                        </div>
+                <div class="mt-4 border-l-4 ${styles[status]} p-3 rounded">
+                    <div class="flex justify-between">
+                        <strong>${m.name}</strong>
+                        <span class="text-xs font-bold">${status.toUpperCase()}</span>
                     </div>
+                    <div class="text-xs mb-2">Target: ${m.target}</div>
+                    <div class="flex flex-wrap gap-2">
+                        ${m.samples.map(s => `
+                            <span class="border px-2 py-1 text-xs rounded
+                                ${typeof s.value === 'number' &&
+                                  (s.value < m.min || s.value > m.max)
+                                    ? 'border-red-500 text-red-700'
+                                    : 'border-gray-300'}
+                            ">
+                                S${s.sampleNumber}: ${s.value ?? '—'}
+                            </span>
+                        `).join('')}
+                    </div>
+                </div>
                 `;
             }).join('')}
-        </div>
-    `).join('');
+        </div>`;
+    }).join('');
 };
 
 // --------------------
-// Delete inspection (HARD DELETE)
+// Delete inspection
 // --------------------
 InspectionManager.deleteInspection = async function (index) {
     const inspection = this.currentRenderedInspections[index];
     if (!inspection) return;
 
-    const ok = confirm(
-        `Delete inspection for batch ${inspection.batchNumber}?\nThis action cannot be undone.`
-    );
-    if (!ok) return;
+    if (!confirm(`Delete inspection for batch ${inspection.batchNumber}?`)) return;
 
     const batches = await api.getBatches();
     const batch = batches.find(b => b._id === inspection.batchId);
-    if (!batch || !Array.isArray(batch.inspections)) return;
+    if (!batch) return;
 
-    batch.inspections = batch.inspections.filter(
-        i => i.timestamp !== inspection.timestamp
-    );
-
+    batch.inspections = batch.inspections.filter(i => i.timestamp !== inspection.timestamp);
     await api.updateBatch(batch._id, { inspections: batch.inspections });
 
     await this.renderAllReports();
