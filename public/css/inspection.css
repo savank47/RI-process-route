@@ -330,80 +330,15 @@
   gap: 0.5rem;
 }
 
-@media print {
-  .report-card {
-    page-break-inside: avoid;
-  }
-}
+/* =========================================================
+   PRINT STYLES — INSPECTION REPORTS (CLEAN & AUDITED)
+   ========================================================= */
 
 @media print {
 
-  /* Force true document mode */
-  html, body {
-    width: 210mm;
-    height: auto;
-    margin: 0;
-    padding: 0;
-    background: #ffffff !important;
-  }
-
-  /* Remove app chrome */
-  header,
-  footer,
-  nav,
-  .export-btn,
-  .delete-btn {
-    display: none !important;
-  }
-
-  /* Disable shadows and rounded UI */
-  * {
-    box-shadow: none !important;
-    border-radius: 0 !important;
-    background-image: none !important;
-  }
-
-  /* Ensure only inspection content prints */
-  body * {
-    visibility: hidden;
-  }
-
-  #content-inspections,
-  #content-inspections * {
-    visibility: visible;
-  }
-
-  #content-inspections {
-    position: static;
-    width: 100%;
-    padding: 12mm;
-  }
-
-  /* Make report cards look like document sections */
-  .report-card {
-    border: 1px solid #d1d5db;
-    margin-bottom: 12mm;
-    padding: 8mm;
-    page-break-inside: avoid;
-  }
-
-  /* Dimension blocks should not split */
-  .dimension-block {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* Typography tuning for print */
-  body {
-    font-size: 11pt;
-    color: #000000;
-  }
-
-}
-
-@media print {
-
-  /* Force landscape document */
+  /* ---------------------------------
+     Page setup
+     --------------------------------- */
   @page {
     size: A4 landscape;
     margin: 12mm;
@@ -413,9 +348,15 @@
     background: #ffffff !important;
     margin: 0;
     padding: 0;
+    width: 100%;
+    height: auto;
+    font-size: 11pt;
+    color: #000000;
   }
 
-  /* Hide non-report UI */
+  /* ---------------------------------
+     Hide non-report UI
+     --------------------------------- */
   header,
   footer,
   nav,
@@ -425,7 +366,9 @@
     display: none !important;
   }
 
-  /* Only show inspection reports */
+  /* ---------------------------------
+     Ensure ONLY inspection content prints
+     --------------------------------- */
   body * {
     visibility: hidden;
   }
@@ -438,30 +381,56 @@
   #content-inspections {
     position: static;
     width: 100%;
+    max-width: 100% !important;
     padding: 0;
   }
 
-  /* Report formatting */
+  /* ---------------------------------
+     Report layout (document mode)
+     --------------------------------- */
   .report-card {
+    width: 100%;
+    max-width: 100% !important;
     border: 1px solid #d1d5db;
-    box-shadow: none !important;
     margin-bottom: 10mm;
     padding: 8mm;
+    box-shadow: none !important;
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
+  /* STEP 3 — PRINT-SPECIFIC LAYOUT WIDENING (CRITICAL) */
+  .report-card.print-landscape {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+  }
+
+  /* Allow horizontal breathing for samples */
+  .sample-list {
+    justify-content: space-between;
+  }
+
+  /* ---------------------------------
+     Prevent internal splits
+     --------------------------------- */
   .dimension-block {
     page-break-inside: avoid;
     break-inside: avoid;
   }
 
-  /* Kill web-only visuals */
+  /* ---------------------------------
+     Kill web-only visuals
+     --------------------------------- */
   * {
     box-shadow: none !important;
+    border-radius: 0 !important;
     background-image: none !important;
     transition: none !important;
   }
 
 }
+
+
 
 
