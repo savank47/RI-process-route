@@ -149,7 +149,7 @@
 }
 
 .dimension-target {
-  font-size: 0.8rem;                   /* REFINED */
+  font-size: 0.95rem;                   /* REFINED */
   color: #6b7280;
   margin-bottom: 0.75rem;              /* NEW */
   padding-left: 0.5rem;                /* NEW */
@@ -190,7 +190,7 @@
 
 .sample-value {
   font-size: 1rem;                  /* NEW: primary value */
-  font-weight: 600;
+  font-weight: 800;
   line-height: 1.1;
   letter-spacing: 0.01em;
 }
