@@ -641,40 +641,58 @@ InspectionManager.downloadInspectionPDF = function (index) {
         return;
     }
 
-    // 1️⃣ Clone the report
-    const clone = source.cloneNode(true);
+    // Clone report HTML
+    const html = source.outerHTML
+        .replace(/class="[^"]*"/g, ''); // strip ALL classes
 
-    // 2️⃣ REMOVE ALL TAILWIND CLASSES (🔥 CRITICAL FIX)
-    clone.querySelectorAll('*').forEach(el => {
-        el.removeAttribute('class');   // <— THIS removes oklch completely
+    // Create isolated iframe (NO Tailwind CSS)
+    const iframe = document.createElement('iframe');
+    iframe.style.position = 'fixed';
+    iframe.style.left = '-10000px';
+    iframe.style.top = '0';
+    iframe.width = '794';
+    iframe.height = '1123';
+    document.body.appendChild(iframe);
 
-        // Apply safe inline styles
-        el.style.color = '#000';
-        el.style.backgroundColor = '#fff';
-        el.style.borderColor = '#ccc';
-        el.style.boxShadow = 'none';
-        el.style.fontFamily = 'Arial, sans-serif';
-    });
+    const doc = iframe.contentDocument || iframe.contentWindow.document;
 
-    // Remove buttons from PDF
-    clone.querySelectorAll('button').forEach(b => b.remove());
+    // Write CLEAN HTML with BASIC CSS ONLY
+    doc.open();
+    doc.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    background: #ffffff;
+                    color: #000000;
+                    padding: 16px;
+                }
+                h4 { margin: 0 0 8px 0; }
+                .section { margin-bottom: 12px; }
+                .row { display: flex; gap: 8px; }
+                .box {
+                    border: 1px solid #ccc;
+                    padding: 6px;
+                    font-size: 12px;
+                }
+            </style>
+        </head>
+        <body>
+            ${html}
+        </body>
+        </html>
+    `);
+    doc.close();
 
-    // 3️⃣ Create isolated container
-    const container = document.createElement('div');
-    container.style.position = 'fixed';
-    container.style.left = '-10000px';
-    container.style.top = '0';
-    container.style.width = '794px'; // A4 width
-    container.appendChild(clone);
-    document.body.appendChild(container);
+    const target = doc.body;
 
-    const filename = `Inspection_Report_${index + 1}.pdf`;
-
-    // 4️⃣ Generate PDF
     html2pdf()
         .set({
             margin: 10,
-            filename,
+            filename: `Inspection_Report_${index + 1}.pdf`,
             image: { type: 'jpeg', quality: 0.95 },
             html2canvas: {
                 scale: 1,
@@ -686,18 +704,17 @@ InspectionManager.downloadInspectionPDF = function (index) {
                 orientation: 'portrait'
             }
         })
-        .from(clone)
+        .from(target)
         .save()
         .then(() => {
-            document.body.removeChild(container);
+            document.body.removeChild(iframe);
         })
         .catch(err => {
             console.error('PDF generation failed:', err);
-            document.body.removeChild(container);
-            alert('Failed to generate PDF');
+            document.body.removeChild(iframe);
+            alert('PDF generation failed');
         });
 };
-
 
 
 
