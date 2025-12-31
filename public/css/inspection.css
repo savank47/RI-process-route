@@ -165,7 +165,7 @@
 
 .sample-label {
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
   color: #6b7280; /* gray-500 */
   margin-bottom: 0.1rem;
 }
@@ -188,7 +188,7 @@
 }
 
 .deviation {
-  font-size: 0.65rem;
+  font-size: 0.70rem;
   opacity: 0.85;
 }
 
