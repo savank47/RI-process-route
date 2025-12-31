@@ -149,11 +149,12 @@
 }
 
 .dimension-target {
-  font-size: 0.7rem;                   /* REFINED */
+  font-size: 0.8rem;                   /* REFINED */
   color: #6b7280;
   margin-bottom: 0.75rem;              /* NEW */
   padding-left: 0.5rem;                /* NEW */
   border-left: 2px dashed #e5e7eb;     /* NEW: reference indicator */
+   font-weight: 700px; 
 }
 
 
@@ -168,8 +169,8 @@
 }
 
 .sample-chip {
-  width: 72px;                         /* NEW: consistent footprint */
-  padding: 0.55rem 0.6rem;             /* REFINED */
+  width: 120px;                        /* NEW: consistent footprint */
+  padding: 0.45rem 0.9rem;             /* REFINED */
   border-radius: 0.75rem;              /* NEW: premium softness */
   background: #f9fafb;
   border-left: 4px solid #d1d5db;
@@ -189,7 +190,7 @@
 
 .sample-value {
   font-size: 0.95rem;                  /* NEW: primary value */
-  font-weight: 700;
+  font-weight: 800;
   line-height: 1.1;
 }
 
