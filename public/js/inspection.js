@@ -1,7 +1,6 @@
 // ========================================
 // inspection.js
-// Purpose: Inspection Reports (FINAL / AUDITED)
-// Scope: UI + data only
+// FINAL – AUDITED, STABLE, SHOP-FLOOR SAFE
 // ========================================
 
 /* ==============================
@@ -11,7 +10,7 @@
 const InspectionManager = {};
 
 /* ==============================
-   State (required for creation & delete)
+   State
    ============================== */
 
 InspectionManager.currentSampleSize = 1;
@@ -19,7 +18,7 @@ InspectionManager.currentBatchForInspection = null;
 InspectionManager.currentRenderedInspections = [];
 
 /* ==============================
-   Utility helpers (DEFENSIVE)
+   Utility Helpers (DEFENSIVE)
    ============================== */
 
 function isNumber(n) {
@@ -39,21 +38,19 @@ function normalizeMeasurement(m) {
 }
 
 function isOutOfTolerance(value, min, max) {
-    if (!isNumber(value)) return false;
-    if (!isNumber(min) || !isNumber(max)) return false;
+    if (!isNumber(value) || !isNumber(min) || !isNumber(max)) return false;
     return value < min || value > max;
 }
 
 function getDeviation(value, min, max) {
-    if (!isNumber(value) || !isNumber(min) || !isNumber(max)) return null;
+    if (!isOutOfTolerance(value, min, max)) return null;
     if (value < min) return (value - min).toFixed(2);
     if (value > max) return (value - max).toFixed(2);
     return null;
 }
 
 function getDimensionStatus(measurement) {
-    const samples = normalizeArray(measurement.samples);
-    return samples.some(s =>
+    return normalizeArray(measurement.samples).some(s =>
         isOutOfTolerance(s.value, measurement.min, measurement.max)
     )
         ? 'out'
@@ -61,21 +58,21 @@ function getDimensionStatus(measurement) {
 }
 
 function getOutOfToleranceSampleCount(measurements) {
-    const outSamples = new Set();
+    const set = new Set();
 
     normalizeArray(measurements).forEach(m => {
         normalizeArray(m.samples).forEach(s => {
             if (isOutOfTolerance(s.value, m.min, m.max)) {
-                outSamples.add(s.sampleNumber);
+                set.add(s.sampleNumber);
             }
         });
     });
 
-    return outSamples.size;
+    return set.size;
 }
 
 /* ==============================
-   TAB ENTRY POINT (UI CONTRACT)
+   UI TAB ENTRY (MANDATORY)
    ============================== */
 
 InspectionManager.renderTab = async function () {
@@ -84,20 +81,14 @@ InspectionManager.renderTab = async function () {
 };
 
 /* ==============================
-   Batch dropdown (RESTORED)
+   Batch Dropdown
    ============================== */
 
 InspectionManager.updateBatchSelect = async function () {
     const select = document.getElementById('inspectionBatchSelect');
     if (!select) return;
 
-    let batches = [];
-    try {
-        batches = await api.getBatches();
-    } catch (err) {
-        console.error('Failed to load batches for inspection', err);
-        return;
-    }
+    const batches = await api.getBatches();
 
     select.innerHTML =
         '<option value="">-- Select Batch --</option>' +
@@ -107,7 +98,30 @@ InspectionManager.updateBatchSelect = async function () {
 };
 
 /* ==============================
-   Preview inspection form
+   Sample Size Selection (RESTORED)
+   ============================== */
+
+InspectionManager.setSampleSize = function (value) {
+    let size = 1;
+
+    if (value === 'custom') {
+        const v = parseInt(prompt('Enter number of samples:', '5'), 10);
+        if (!v || v <= 0) return;
+        size = v;
+    } else {
+        size = parseInt(value, 10) || 1;
+    }
+
+    this.currentSampleSize = size;
+
+    // Rebuild preview if batch already selected
+    if (document.getElementById('inspectionBatchSelect').value) {
+        this.previewDimensions();
+    }
+};
+
+/* ==============================
+   Preview Dimensions
    ============================== */
 
 InspectionManager.previewDimensions = async function () {
@@ -128,7 +142,7 @@ InspectionManager.previewDimensions = async function () {
         return;
     }
 
-    InspectionManager.currentBatchForInspection = batch;
+    this.currentBatchForInspection = batch;
     preview.classList.remove('hidden');
 
     document.getElementById('inspectionFormBatchInfo').innerHTML = `
@@ -138,39 +152,40 @@ InspectionManager.previewDimensions = async function () {
     `;
 
     const container = document.getElementById('inspectionFormDimensions');
+
     container.innerHTML = Array.from(
-        { length: InspectionManager.currentSampleSize },
+        { length: this.currentSampleSize },
         (_, sIdx) => `
-            <div class="border rounded p-4 mb-4">
-                <h4 class="font-bold mb-2">Sample ${sIdx + 1}</h4>
-                ${batch.itemDimensions.map((dim, dIdx) => `
-                    <div class="mb-2">
-                        <label class="text-sm font-semibold">${dim.name}</label>
-                        <div class="flex gap-2">
-                            <input
-                                type="number"
-                                step="0.001"
-                                id="inspection-${sIdx}-${dIdx}"
-                                class="border rounded px-2 py-1 w-full"
-                            />
-                            <span class="text-sm">${dim.unit}</span>
-                        </div>
-                        <div class="text-xs text-gray-500">
-                            Target: ${dim.minValue} – ${dim.maxValue}
-                        </div>
+        <div class="border rounded p-4 mb-4">
+            <h4 class="font-bold mb-2">Sample ${sIdx + 1}</h4>
+            ${batch.itemDimensions.map((dim, dIdx) => `
+                <div class="mb-2">
+                    <label class="text-sm font-semibold">${dim.name}</label>
+                    <div class="flex gap-2">
+                        <input
+                            type="number"
+                            step="0.001"
+                            id="inspection-${sIdx}-${dIdx}"
+                            class="border rounded px-2 py-1 w-full"
+                        />
+                        <span class="text-sm">${dim.unit}</span>
                     </div>
-                `).join('')}
-            </div>
-        `
+                    <div class="text-xs text-gray-500">
+                        Target: ${dim.minValue} – ${dim.maxValue}
+                    </div>
+                </div>
+            `).join('')}
+        </div>
+    `
     ).join('');
 };
 
 /* ==============================
-   Save inspection (RESTORED)
+   Save Inspection
    ============================== */
 
 InspectionManager.saveFromTab = async function () {
-    const batch = InspectionManager.currentBatchForInspection;
+    const batch = this.currentBatchForInspection;
     if (!batch) return;
 
     const inspector = document.getElementById('inspectorName').value.trim();
@@ -182,14 +197,11 @@ InspectionManager.saveFromTab = async function () {
     const measurements = batch.itemDimensions.map((dim, dIdx) => {
         const samples = [];
 
-        for (let s = 0; s < InspectionManager.currentSampleSize; s++) {
+        for (let s = 0; s < this.currentSampleSize; s++) {
             const input = document.getElementById(`inspection-${s}-${dIdx}`);
             const value = input && input.value !== '' ? parseFloat(input.value) : null;
 
-            samples.push({
-                sampleNumber: s + 1,
-                value
-            });
+            samples.push({ sampleNumber: s + 1, value });
         }
 
         if (!samples.some(s => isNumber(s.value))) return null;
@@ -212,7 +224,7 @@ InspectionManager.saveFromTab = async function () {
     const inspection = {
         timestamp: new Date().toISOString(),
         inspector,
-        sampleSize: InspectionManager.currentSampleSize,
+        sampleSize: this.currentSampleSize,
         measurements
     };
 
@@ -221,59 +233,50 @@ InspectionManager.saveFromTab = async function () {
 
     await api.updateBatch(batch._id, { inspections: batch.inspections });
 
-    InspectionManager.clearForm();
-    await InspectionManager.renderAllReports();
+    this.clearForm();
+    await this.renderAllReports();
 
     UI.showToast('Inspection saved', 'success');
 };
 
 /* ==============================
-   Render inspection reports
+   Render Inspection Reports
    ============================== */
 
 InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
     if (!container) return;
 
-    container.classList.add('inspection-canvas');
-
     const batches = await api.getBatches();
     const inspections = [];
 
     batches.forEach(batch => {
-        normalizeArray(batch.inspections).forEach(inspection => {
-            if (!inspection || !Array.isArray(inspection.measurements)) return;
+        normalizeArray(batch.inspections).forEach(i => {
+            if (!i || !Array.isArray(i.measurements)) return;
 
             inspections.push({
-                ...inspection,
-                measurements: inspection.measurements.map(normalizeMeasurement),
+                ...i,
+                measurements: i.measurements.map(normalizeMeasurement),
                 batchId: batch._id,
-                batchNumber: batch.batchNumber || '—',
-                itemName: batch.itemName || '—'
+                batchNumber: batch.batchNumber,
+                itemName: batch.itemName
             });
         });
     });
 
     inspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-    InspectionManager.currentRenderedInspections = inspections;
+    this.currentRenderedInspections = inspections;
 
-    if (!inspections.length) {
-        container.innerHTML = `<p>No inspection reports found.</p>`;
-        return;
-    }
-
-    container.innerHTML = inspections
-        .map((inspection, index) => renderReportCard(inspection, index))
-        .join('');
+    container.innerHTML = inspections.length
+        ? inspections.map(renderReportCard).join('')
+        : `<p>No inspection reports found.</p>`;
 };
 
 /* ==============================
-   Report card
+   Report Card
    ============================== */
 
 function renderReportCard(report, index) {
-    const outCount = getOutOfToleranceSampleCount(report.measurements);
-
     return `
         <div class="report-card">
             <div class="report-header">
@@ -282,14 +285,14 @@ function renderReportCard(report, index) {
                         ${report.batchNumber} – ${report.itemName}
                     </div>
                     <div class="report-meta">${new Date(report.timestamp).toLocaleString()}</div>
-                    <div class="report-meta">Inspector: ${report.inspector || '—'}</div>
+                    <div class="report-meta">Inspector: ${report.inspector}</div>
                     <div class="report-summary">
-                        Samples out of tolerance: ${outCount}
+                        Samples out of tolerance:
+                        ${getOutOfToleranceSampleCount(report.measurements)}
                     </div>
                 </div>
 
-                <button
-                    class="delete-btn"
+                <button class="delete-btn"
                     onclick="InspectionManager.deleteInspection(${index})">
                     Delete
                 </button>
@@ -301,23 +304,18 @@ function renderReportCard(report, index) {
 }
 
 /* ==============================
-   Dimension block
+   Dimension & Sample Rendering
    ============================== */
 
 function renderDimensionRow(m) {
-    const status = getDimensionStatus(m);
-
     return `
-        <div class="dimension-block ${status === 'out' ? 'out' : ''}">
+        <div class="dimension-block ${getDimensionStatus(m) === 'out' ? 'out' : ''}">
             <div class="dimension-header">
                 <div class="dimension-name">${m.name}</div>
-                ${status === 'out'
-                    ? `<div class="dimension-status out">Out of tolerance</div>`
-                    : ''}
             </div>
 
             <div class="dimension-target">
-                Target: ${m.min} – ${m.max} ${m.unit || ''}
+                Target: ${m.min} – ${m.max} ${m.unit}
             </div>
 
             <div class="sample-list">
@@ -327,31 +325,27 @@ function renderDimensionRow(m) {
     `;
 }
 
-/* ==============================
-   Sample chip
-   ============================== */
-
-function renderSampleChip(sample, measurement) {
-    const out = isOutOfTolerance(sample.value, measurement.min, measurement.max);
-    const deviation = out ? getDeviation(sample.value, measurement.min, measurement.max) : null;
+function renderSampleChip(s, m) {
+    const out = isOutOfTolerance(s.value, m.min, m.max);
+    const dev = getDeviation(s.value, m.min, m.max);
 
     return `
         <div class="sample-chip ${out ? 'fail' : ''}">
-            <div class="sample-label">S${sample.sampleNumber}</div>
+            <div class="sample-label">S${s.sampleNumber}</div>
             <div class="sample-value">
-                ${sample.value ?? '—'}${sample.value != null && measurement.unit ? ` ${measurement.unit}` : ''}
+                ${s.value ?? '—'} ${s.value != null ? m.unit : ''}
             </div>
-            ${out && deviation !== null ? `<div class="deviation">(${deviation})</div>` : ''}
+            ${dev !== null ? `<div class="deviation">(${dev})</div>` : ''}
         </div>
     `;
 }
 
 /* ==============================
-   Delete inspection
+   Delete Inspection
    ============================== */
 
 InspectionManager.deleteInspection = async function (index) {
-    const inspection = InspectionManager.currentRenderedInspections[index];
+    const inspection = this.currentRenderedInspections[index];
     if (!inspection) return;
 
     if (!confirm(`Delete inspection for batch ${inspection.batchNumber}?`)) return;
@@ -364,13 +358,13 @@ InspectionManager.deleteInspection = async function (index) {
         .filter(i => i.timestamp !== inspection.timestamp);
 
     await api.updateBatch(batch._id, { inspections: batch.inspections });
+    await this.renderAllReports();
 
-    await InspectionManager.renderAllReports();
     UI.showToast('Inspection deleted', 'success');
 };
 
 /* ==============================
-   Clear form
+   Clear Form
    ============================== */
 
 InspectionManager.clearForm = function () {
@@ -386,6 +380,6 @@ InspectionManager.clearForm = function () {
    ============================== */
 
 window.InspectionManager = InspectionManager;
-window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions();
+window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
