@@ -263,14 +263,13 @@ InspectionManager.renderAllReports = async function () {
 
             <!-- Dimensions -->
             ${i.measurements.map(m => `
-                <div class="mb-4 p-3 rounded border">
-
+                <div class="mb-5 pl-3 border-l-2 border-gray-200">
                     <div class="flex justify-between items-center mb-1">
-                        <strong>${m.name}</strong>
+                        <div class="font-semibold text-gray-800">${m.name}</div>
                         <span class="text-xs font-bold ${
                             getDimensionStatus(m) === 'fail'
                                 ? 'text-red-700'
-                                : 'text-green-700'
+                                : 'text-green-600'
                         }">
                             ${getDimensionStatus(m).toUpperCase()}
                         </span>
@@ -290,7 +289,7 @@ InspectionManager.renderAllReports = async function () {
                             const deviation = out ? getDeviation(s.value, m.min, m.max) : null;
 
                             return `
-                            <div class="px-3 py-2 rounded border text-center text-xs
+                            <div class="px-3 py-1.5 min-w-[64px] rounded border text-center text-xs
                                 ${out
                                     ? 'border-red-500 bg-red-50 text-red-800'
                                     : 'border-gray-300 bg-white text-gray-800'}">
