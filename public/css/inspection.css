@@ -192,6 +192,12 @@
   opacity: 0.85;
 }
 
+.sample-value,
+.sample-chip .deviation {
+  font-variant-numeric: tabular-nums;
+}
+
+
 /* ==============================
    Delete Button
    ============================== */
