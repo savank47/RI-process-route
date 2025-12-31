@@ -203,6 +203,10 @@ function getOverallInspectionStatus(measurements) {
 // --------------------
 InspectionManager.renderAllReports = async function () {
     const container = document.getElementById('inspectionReportsList');
+
+    // Ensure report canvas background (prevents white-on-white bleed)
+    container.classList.add('bg-gray-50', 'p-6');
+    
     const batches = await api.getBatches();
     let inspections = [];
 
