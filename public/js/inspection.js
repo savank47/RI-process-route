@@ -273,56 +273,63 @@ InspectionManager.renderAllReports = async function () {
                 </button>
             </div>
 
-           ${i.measurements.map(m => {
-    const status = getDimensionStatus(m);
-
-    const statusStyles = {
-        pass: 'border-green-500 bg-green-50 text-green-800',
-        conditional: 'border-amber-500 bg-amber-50 text-amber-800',
-        fail: 'border-red-500 bg-red-50 text-red-800'
-    };
-
-    const statusLabels = {
-        pass: 'PASS',
-        conditional: 'CONDITIONAL',
-        fail: 'FAIL'
-    };
-
-    return `
-        <div class="mt-4 border-l-4 ${statusStyles[status]} p-3 rounded">
-            <div class="flex justify-between items-center mb-1">
-                <div class="font-semibold">
-                    ${m.name}
-                </div>
-                <span class="text-xs font-bold">
-                    ${statusLabels[status]}
-                </span>
-            </div>
-
-            <div class="text-xs mb-2">
-                Target: ${m.target}
-            </div>
-
-            <div class="flex flex-wrap gap-2">
-                ${m.samples.map(s => {
-                    let sampleClass = 'border-gray-300';
-
-                    if (typeof s.value === 'number') {
-                        if (s.value < m.min || s.value > m.max) {
-                            sampleClass = 'border-red-500 text-red-700';
-                        }
-                    }
-
+           ${i.measurements.map(m => `
+                ${(() => {
+                    const failed = m.samples.some(
+                        s => typeof s.value === 'number' && (s.value < m.min || s.value > m.max)
+                    );
+            
+                    const nearLimit = !failed && m.samples.some(s => {
+                        if (typeof s.value !== 'number') return false;
+                        const range = m.max - m.min;
+                        const margin = range * 0.1;
+                        return s.value <= m.min + margin || s.value >= m.max - margin;
+                    });
+            
+                    const status = failed ? 'fail' : nearLimit ? 'conditional' : 'pass';
+            
+                    const styles = {
+                        pass: 'border-green-500 bg-green-50 text-green-800',
+                        conditional: 'border-amber-500 bg-amber-50 text-amber-800',
+                        fail: 'border-red-500 bg-red-50 text-red-800'
+                    };
+            
+                    const labels = {
+                        pass: 'PASS',
+                        conditional: 'CONDITIONAL',
+                        fail: 'FAIL'
+                    };
+            
                     return `
-                        <span class="border ${sampleClass} px-2 py-1 text-xs rounded">
-                            S${s.sampleNumber}: ${s.value ?? '—'}
-                        </span>
+                        <div class="mt-4 border-l-4 ${styles[status]} p-3 rounded">
+                            <div class="flex justify-between items-center mb-1">
+                                <div class="font-semibold">${m.name}</div>
+                                <span class="text-xs font-bold">${labels[status]}</span>
+                            </div>
+            
+                            <div class="text-xs mb-2">
+                                Target: ${m.target}
+                            </div>
+            
+                            <div class="flex flex-wrap gap-2">
+                                ${m.samples.map(s => {
+                                    const out = typeof s.value === 'number' &&
+                                                (s.value < m.min || s.value > m.max);
+            
+                                    return `
+                                        <span class="
+                                            border px-2 py-1 text-xs rounded
+                                            ${out ? 'border-red-500 text-red-700' : 'border-gray-300'}
+                                        ">
+                                            S${s.sampleNumber}: ${s.value ?? '—'}
+                                        </span>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
                     `;
-                }).join('')}
-            </div>
-        </div>
-    `;
-}).join('')}
+                })()}
+            `).join('')}
 
 
 // --------------------
