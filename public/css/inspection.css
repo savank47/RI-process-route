@@ -247,6 +247,21 @@
   background: #dc2626;
 }
 
+/* ==============================
+   Subtle Delete Action (Premium)
+   ============================== */
+
+.delete-btn.subtle {
+  background: transparent;
+  color: #9ca3af;           /* gray-400 */
+  padding: 0.25rem 0.4rem;
+  font-size: 0.65rem;
+}
+
+.delete-btn.subtle:hover {
+  background: #fee2e2;      /* soft red hover */
+  color: #991b1b;
+}
 
 /* ==============================
    Accordion Start
