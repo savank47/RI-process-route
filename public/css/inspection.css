@@ -450,3 +450,16 @@
   }
 }
 
+  /* ---------------------------------
+     Kill Create New Inspection Report
+      In Print
+     --------------------------------- */
+@media print {
+  .create-inspection-form {
+    display: none !important;
+  }
+
+  .inspection-reports-header {
+    display: none !important;
+  }
+}
