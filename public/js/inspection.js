@@ -229,8 +229,15 @@ InspectionManager.renderAllReports = async function () {
         const overallStatus = getOverallInspectionStatus(i.measurements);
 
         return `
-        <div class="border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'} border rounded p-4 mb-4">
-
+        <div class="
+                border-l-4 ${overallStatus === 'approved' ? 'border-green-500' : 'border-red-500'}
+                border border-gray-200
+                bg-white
+                rounded
+                p-4
+                mb-8
+                shadow-sm
+            ">
             <!-- Header -->
             <div class="flex justify-between items-start mb-3">
                 <div>
