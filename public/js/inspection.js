@@ -270,7 +270,11 @@ InspectionManager.renderAllReports = async function () {
                     </div>
 
                     <div class="text-xs text-gray-600 mb-2">
-                        Target: ${m.min} – ${m.max} ${m.unit}
+                        Target: ${
+                            m.min !== undefined && m.max !== undefined
+                                ? `${m.min} – ${m.max} ${m.unit}`
+                                : m.target || 'N/A'
+                        }
                     </div>
 
                     <div class="flex flex-wrap gap-2">
@@ -284,7 +288,10 @@ InspectionManager.renderAllReports = async function () {
                                     ? 'border-red-500 bg-red-50 text-red-800'
                                     : 'border-gray-300 bg-white text-gray-800'}">
                                 <div class="font-semibold">S${s.sampleNumber}</div>
-                                <div>${s.value ?? '—'}</div>
+                                <div>
+                                  ${s.value ?? '—'}
+                                  ${s.value !== null && m.unit ? ` ${m.unit}` : ''}
+                                </div>
                                 ${out ? `<div class="text-[11px]">(${deviation > 0 ? '+' : ''}${deviation})</div>` : ''}
                             </div>
                             `;
