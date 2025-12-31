@@ -256,56 +256,57 @@ InspectionManager.renderAllReports = async function () {
             </div>
 
             <!-- Dimensions -->
-            ${i.measurements.map(m => `
-                <div class="dimension-block">
-                    <div class="flex justify-between items-center mb-1">
-                        <div class="font-semibold text-gray-800">${m.name}</div>
-                        <span class="text-xs font-bold ${
-                            getDimensionStatus(m) === 'fail'
-                                ? 'text-red-700'
-                                : 'text-green-600'
-                        }">
-                            ${getDimensionStatus(m).toUpperCase()}
-                        </span>
-                    </div>
+           ${i.measurements.map(m => {
+    const status = getDimensionStatus(m);
 
-                    <div class="text-xs text-gray-600 mb-2">
-                        Target: ${
-                            m.min !== undefined && m.max !== undefined
-                                ? `${m.min} – ${m.max} ${m.unit}`
-                                : m.target || 'N/A'
-                        }
-                    </div>
+    return `
+        <div class="dimension-block">
 
-                    <div class="flex flex-wrap gap-2">
-                        ${m.samples.map(s => {
-                            const out = isOutOfTolerance(s.value, m.min, m.max);
-                            const deviation = out ? getDeviation(s.value, m.min, m.max) : null;
-
-                            return `
-                            <div class="sample-chip ${out ? 'fail' : ''}">
-                                <div class="sample-label">S${s.sampleNumber}</div>
-                            
-                                <div class="sample-value">
-                                    ${s.value ?? '—'}${s.value !== null && m.unit ? ` ${m.unit}` : ''}
-                                </div>
-                            
-                                ${out ? `
-                                    <div class="deviation">
-                                        (${deviation > 0 ? '+' : ''}${deviation})
-                                    </div>
-                                ` : ''}
-                            </div>
-                            `;
-                        }).join('')}
-                    </div>
-
+            <div class="dimension-header">
+                <div class="dimension-name">${m.name}</div>
+                <div class="dimension-status ${status}">
+                    ${status.toUpperCase()}
                 </div>
-            `).join('')}
+            </div>
+
+            <div class="dimension-target">
+                Target: ${
+                    m.min !== undefined && m.max !== undefined
+                        ? `${m.min} – ${m.max} ${m.unit}`
+                        : m.target || 'N/A'
+                }
+            </div>
+
+            <div class="sample-list">
+                ${m.samples.map(s => {
+                    const out = isOutOfTolerance(s.value, m.min, m.max);
+                    const deviation = out
+                        ? getDeviation(s.value, m.min, m.max)
+                        : null;
+
+                    return `
+                        <div class="sample-chip ${out ? 'fail' : ''}">
+                            <div class="sample-label">S${s.sampleNumber}</div>
+
+                            <div class="sample-value">
+                                ${s.value ?? '—'}${s.value !== null && m.unit ? ` ${m.unit}` : ''}
+                            </div>
+
+                            ${out ? `
+                                <div class="deviation">
+                                    (${deviation > 0 ? '+' : ''}${deviation})
+                                </div>
+                            ` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+
         </div>
-        `;
-    }).join('');
-};
+    `;
+}).join('')}
+
+
 
 // --------------------
 // Delete inspection
