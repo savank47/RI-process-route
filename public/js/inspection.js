@@ -11,6 +11,14 @@
 const InspectionManager = {};
 
 /* ==============================
+   State (restored from old file)
+   ============================== */
+
+InspectionManager.currentSampleSize = 1;
+InspectionManager.currentBatchForInspection = null;
+InspectionManager.currentRenderedInspections = [];
+
+/* ==============================
    Utility helpers (SAFE)
    ============================== */
 
@@ -39,7 +47,6 @@ function getDeviation(value, min, max) {
 
 function getDimensionStatus(measurement) {
     const samples = normalizeArray(measurement.samples);
-
     return samples.some(s =>
         isOutOfTolerance(s.value, measurement.min, measurement.max)
     )
@@ -62,17 +69,36 @@ function getOutOfToleranceSampleCount(measurements) {
 }
 
 /* ==============================
-   UI TAB ENTRY POINT (IMPORTANT)
-   Called from UI.showTab('inspections')
+   UI TAB ENTRY POINT (CRITICAL)
+   This matches UI.showTab('inspections')
    ============================== */
 
 InspectionManager.renderTab = async function () {
+    await InspectionManager.updateBatchSelect();
     await InspectionManager.renderAllReports();
+};
 
-    // Populate batch dropdown (defined elsewhere)
-    if (typeof populateInspectionBatchSelect === 'function') {
-        await populateInspectionBatchSelect();
+/* ==============================
+   Batch dropdown (RESTORED)
+   ============================== */
+
+InspectionManager.updateBatchSelect = async function () {
+    const select = document.getElementById('inspectionBatchSelect');
+    if (!select) return;
+
+    let batches = [];
+    try {
+        batches = await api.getBatches();
+    } catch (err) {
+        console.error('Failed to load batches for inspection', err);
+        return;
     }
+
+    select.innerHTML =
+        '<option value="">-- Select Batch --</option>' +
+        batches.map(b =>
+            `<option value="${b._id}">${b.batchNumber} – ${b.itemName || ''}</option>`
+        ).join('');
 };
 
 /* ==============================
@@ -96,31 +122,21 @@ InspectionManager.renderAllReports = async function () {
 
     const inspections = [];
 
-    // Normalize inspections + measurements ONCE
     batches.forEach(batch => {
-        const inspectionsArr = Array.isArray(batch.inspections)
-            ? batch.inspections
-            : [];
+        normalizeArray(batch.inspections).forEach(inspection => {
+            if (!inspection || !Array.isArray(inspection.measurements)) return;
 
-        inspectionsArr.forEach((inspection, inspectionIndex) => {
             inspections.push({
                 ...inspection,
-                measurements: Array.isArray(inspection.measurements)
-                    ? inspection.measurements
-                    : [],
                 batchId: batch._id,
-                inspectionIndex,
                 batchNumber: batch.batchNumber || '—',
                 itemName: batch.itemName || '—'
             });
         });
     });
 
-    inspections.sort((a, b) => {
-        const ta = new Date(a.timestamp).getTime() || 0;
-        const tb = new Date(b.timestamp).getTime() || 0;
-        return tb - ta;
-    });
+    inspections.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    InspectionManager.currentRenderedInspections = inspections;
 
     if (!inspections.length) {
         container.innerHTML = `<p>No inspection reports found.</p>`;
@@ -149,9 +165,7 @@ function renderReportCard(report, index) {
                     </div>
 
                     <div class="report-meta">
-                        ${report.timestamp
-                            ? new Date(report.timestamp).toLocaleString()
-                            : '—'}
+                        ${new Date(report.timestamp).toLocaleString()}
                     </div>
 
                     <div class="report-meta">
@@ -226,7 +240,7 @@ function renderSampleChip(sample, measurement) {
 
     return `
         <div class="sample-chip ${out ? 'fail' : ''}">
-            <div class="sample-label">S${sample.sampleNumber ?? '—'}</div>
+            <div class="sample-label">S${sample.sampleNumber}</div>
 
             <div class="sample-value">
                 ${sample.value ?? '—'}
@@ -243,32 +257,38 @@ function renderSampleChip(sample, measurement) {
 }
 
 /* ==============================
-   Delete inspection
+   Delete inspection (RESTORED LOGIC)
    ============================== */
 
-InspectionManager.deleteInspection = async function (inspectionIndex) {
-    if (!confirm('Delete this inspection report?')) return;
+InspectionManager.deleteInspection = async function (index) {
+    const inspection = InspectionManager.currentRenderedInspections[index];
+    if (!inspection) return;
+
+    if (!confirm(`Delete inspection for batch ${inspection.batchNumber}?`)) return;
 
     const batches = await api.getBatches();
-    let counter = 0;
+    const batch = batches.find(b => b._id === inspection.batchId);
+    if (!batch) return;
 
-    for (const batch of batches) {
-        const inspectionsArr = Array.isArray(batch.inspections)
-            ? batch.inspections
-            : [];
+    batch.inspections = normalizeArray(batch.inspections)
+        .filter(i => i.timestamp !== inspection.timestamp);
 
-        if (inspectionIndex < counter + inspectionsArr.length) {
-            inspectionsArr.splice(inspectionIndex - counter, 1);
-            await api.updateBatch(batch._id, {
-                inspections: inspectionsArr
-            });
-            break;
-        }
-
-        counter += inspectionsArr.length;
-    }
+    await api.updateBatch(batch._id, { inspections: batch.inspections });
 
     await InspectionManager.renderAllReports();
+    UI.showToast('Inspection deleted', 'success');
+};
+
+/* ==============================
+   Clear form
+   ============================== */
+
+InspectionManager.clearForm = function () {
+    document.getElementById('inspectionFormPreview')?.classList.add('hidden');
+    document.getElementById('inspectionBatchSelect').value = '';
+    document.getElementById('inspectorName').value = '';
+    this.currentSampleSize = 1;
+    this.currentBatchForInspection = null;
 };
 
 /* ==============================
