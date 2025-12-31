@@ -332,7 +332,7 @@
 
 /* =========================================================
    PRINT STYLES — INSPECTION REPORTS
-   TRUE LANDSCAPE DOCUMENT MODE (FINAL)
+   TRUE LANDSCAPE DOCUMENT MODE (FINAL — STABLE)
    ========================================================= */
 
 @media print {
@@ -343,6 +343,19 @@
   @page {
     size: A4 landscape;
     margin: 12mm;
+  }
+
+  /* ---------------------------------
+     HARD RESET — clear all page breaks
+     (prevents blank first page)
+     --------------------------------- */
+  * {
+    page-break-before: auto !important;
+    page-break-after: auto !important;
+    page-break-inside: auto !important;
+    break-before: auto !important;
+    break-after: auto !important;
+    break-inside: auto !important;
   }
 
   /* ---------------------------------
@@ -360,14 +373,15 @@
   }
 
   /* ---------------------------------
-     Hide all non-report UI
+     REMOVE non-report UI from layout
      --------------------------------- */
   header,
   footer,
   nav,
   .export-btn,
   .delete-btn,
-  .create-inspection-form {
+  .create-inspection-form,
+  .inspection-reports-header {
     display: none !important;
   }
 
@@ -394,7 +408,7 @@
     padding: 0 !important;
   }
 
-  /* Neutralize any centered wrappers */
+  /* Neutralize centered wrappers */
   .container,
   .container-sm,
   .container-md,
@@ -447,19 +461,5 @@
     border-radius: 0 !important;
     background-image: none !important;
     transition: none !important;
-  }
-}
-
-  /* ---------------------------------
-     Kill Create New Inspection Report
-      In Print
-     --------------------------------- */
-@media print {
-  .create-inspection-form {
-    display: none !important;
-  }
-
-  .inspection-reports-header {
-    display: none !important;
   }
 }
