@@ -246,3 +246,55 @@
 .delete-btn:hover {
   background: #dc2626;
 }
+
+
+/* ==============================
+   Accordion Start
+   ============================== */
+/* ==============================
+   Accordion Behavior – Inspection Reports
+   ============================== */
+
+.report-card {
+  transition: box-shadow 0.25s ease;
+}
+
+.report-card:hover {
+  box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+}
+
+/* Accordion body (collapsed by default) */
+.report-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease;
+}
+
+/* Expanded state */
+.report-card.open .report-body {
+  max-height: 3000px; /* safe large value */
+}
+
+/* Clickable header */
+.report-header {
+  cursor: pointer;
+}
+
+/* Chevron indicator */
+.report-header::after {
+  content: "›";
+  font-size: 1.4rem;
+  line-height: 1;
+  opacity: 0.5;
+  transform: rotate(90deg);
+  transition: transform 0.25s ease;
+  margin-left: 1rem;
+}
+
+.report-card.open .report-header::after {
+  transform: rotate(-90deg);
+}
+
+/* ==============================
+   Accordion End
+   ============================== */
