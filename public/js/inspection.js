@@ -636,61 +636,62 @@ InspectionManager.generateReport = async function() {
 // ================= PDF DOWNLOAD (PER INSPECTION CARD) =================
 InspectionManager.downloadInspectionPDF = function (index) {
     const source = document.getElementById(`inspection-report-${index}`);
-    if (!source) return;
+    if (!source) {
+        alert('Report not found');
+        return;
+    }
 
-    // Clone the node (CRITICAL)
+    // 1️⃣ Clone content
     const clone = source.cloneNode(true);
 
-    // Remove buttons from PDF
-    clone.querySelectorAll('button').forEach(btn => btn.remove());
+    // 2️⃣ Remove buttons / interactive elements
+    clone.querySelectorAll('button').forEach(b => b.remove());
 
-    // 🔥 REMOVE TAILWIND COLOR CLASSES (KEY FIX)
-    clone.querySelectorAll('*').forEach(el => {
-        el.classList.remove(
-            'bg-green-100', 'bg-amber-100', 'bg-red-100',
-            'text-green-800', 'text-amber-800', 'text-red-800',
-            'border-green-300', 'border-amber-300', 'border-red-300',
-            'text-green-600', 'text-amber-600', 'text-red-600'
-        );
+    // 3️⃣ Create isolated sandbox container
+    const sandbox = document.createElement('div');
+    sandbox.style.position = 'fixed';
+    sandbox.style.left = '-10000px';
+    sandbox.style.top = '0';
+    sandbox.style.width = '794px'; // A4 width in px
+    sandbox.style.background = '#ffffff';
+    sandbox.style.color = '#000000';
+    sandbox.appendChild(clone);
+    document.body.appendChild(sandbox);
 
-        // Force safe inline colors
-        el.style.color = '#000';
-        el.style.backgroundColor = '#fff';
-        el.style.borderColor = '#ccc';
+    // 4️⃣ Force safe styles (NO Tailwind colors)
+    sandbox.querySelectorAll('*').forEach(el => {
+        el.style.backgroundColor = '#ffffff';
+        el.style.color = '#000000';
+        el.style.borderColor = '#cccccc';
+        el.style.boxShadow = 'none';
     });
-
-    // Offscreen container
-    const wrapper = document.createElement('div');
-    wrapper.style.position = 'fixed';
-    wrapper.style.left = '-9999px';
-    wrapper.appendChild(clone);
-    document.body.appendChild(wrapper);
 
     const filename = `Inspection_Report_${index + 1}.pdf`;
 
-    html2pdf()
-        .set({
-            margin: 10,
-            filename,
-            image: { type: 'jpeg', quality: 0.95 },
-            html2canvas: {
-                scale: 1,
-                backgroundColor: '#ffffff'
-            },
-            jsPDF: {
-                unit: 'mm',
-                format: 'a4',
-                orientation: 'portrait'
-            }
-        })
-        .from(clone)
-        .save()
-        .then(() => document.body.removeChild(wrapper))
-        .catch(err => {
-            console.error('PDF generation failed:', err);
-            document.body.removeChild(wrapper);
-        });
+    // 5️⃣ Generate PDF (NO async listeners, NO iframe reuse)
+    html2pdf(sandbox, {
+        margin: 10,
+        filename,
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: {
+            scale: 1,
+            backgroundColor: '#ffffff',
+            useCORS: true
+        },
+        jsPDF: {
+            unit: 'mm',
+            format: 'a4',
+            orientation: 'portrait'
+        }
+    }).then(() => {
+        document.body.removeChild(sandbox);
+    }).catch(err => {
+        console.error('PDF generation failed:', err);
+        document.body.removeChild(sandbox);
+        alert('Failed to generate PDF');
+    });
 };
+
 
 
 // Make globally accessible
