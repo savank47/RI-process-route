@@ -6,7 +6,7 @@
    Canvas
    ============================== */
 .inspection-canvas {
-  background: #fdfefe;              /* near-white, low eye strain */
+  background: #f6f8fb;              /* near-white, low eye strain */
   padding: 1.5rem;
 }
 
@@ -85,22 +85,24 @@
   margin-top: 0.25rem;
   font-size: 0.8rem;
   color: #374151; /* gray-700 */
+  font-weight: 500;
+  padding: 0.25rem 0;
 }
 
 /* ==============================
    Dimension Block
    ============================== */
 .dimension-block {
-  background: #ffffff;
+  background: #fbfcfe;
   border: 1px solid #e5e7eb;        /* gray-200 */
   border-radius: 0.5rem;
   padding: 1rem;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Remove extra gap at end */
 .report-card > .dimension-block:last-child {
-  margin-bottom: 0;
+  margin-bottom: 3rem;
 }
 
 .dimension-header {
@@ -153,10 +155,12 @@
   font-size: 0.7rem;
   text-align: center;
   color: #111827;
+  line-height: 1.2;
 }
 
 .sample-chip .sample-label {
   font-weight: 600;
+  border-width: 2px;
 }
 
 /* Fail state: border + soft tint only */
@@ -164,11 +168,17 @@
   border-color: #ef4444;
   background: #fffafa;              /* almost white */
   color: #991b1b;
+   
 }
 
-.sample-chip .deviation {
+.sample-chip {
   font-size: 0.65rem;
   margin-top: 0.1rem;
+}
+
+.deviation {
+  font-size: 0.65rem;
+  opacity: 0.85;
 }
 
 /* ==============================
