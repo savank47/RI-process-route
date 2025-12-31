@@ -185,13 +185,11 @@ InspectionManager.renderAllReports = async function () {
     const batches = await api.getBatches();
     let inspections = [];
 
-    // Flatten inspections and retain batchId for delete
+    // Flatten inspections and keep only valid ones
     batches.forEach(b => {
         (b.inspections || []).forEach(i => {
-    
-            // 🔒 Skip malformed / legacy inspections
             if (!i || !Array.isArray(i.measurements)) return;
-    
+
             inspections.push({
                 ...i,
                 batchId: b._id,
@@ -200,7 +198,6 @@ InspectionManager.renderAllReports = async function () {
             });
         });
     });
-
 
     this.currentRenderedInspections = inspections;
 
@@ -225,21 +222,22 @@ InspectionManager.renderAllReports = async function () {
                 </button>
             </div>
 
-            ${Array.isArray(i.measurements) ? i.measurements.map(m => `
+            ${i.measurements.map(m => `
                 <div class="mt-2">
                     <strong>${m.name}</strong> (Target: ${m.target})
                     <div class="flex gap-2 mt-1">
-                        ${m.samples.map(s => `
+                        ${Array.isArray(m.samples) ? m.samples.map(s => `
                             <span class="border px-2 py-1 text-xs">
                                 S${s.sampleNumber}: ${s.value ?? '—'}
                             </span>
-                        `).join('')}
+                        `).join('') : ''}
                     </div>
                 </div>
             `).join('')}
         </div>
-    `).join('') : ''}
+    `).join('');
 };
+
 
 // --------------------
 // Delete inspection (HARD DELETE)
