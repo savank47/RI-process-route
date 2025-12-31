@@ -11,15 +11,15 @@
 const InspectionManager = {};
 
 /* ==============================
-   Utility helpers (DEFENSIVE)
+   Utility helpers (BORING + SAFE)
    ============================== */
-
-function normalizeArray(arr) {
-    return Array.isArray(arr) ? arr : [];
-}
 
 function isNumber(n) {
     return typeof n === 'number' && !Number.isNaN(n);
+}
+
+function normalizeArray(arr) {
+    return Array.isArray(arr) ? arr : [];
 }
 
 function isOutOfTolerance(value, min, max) {
@@ -37,11 +37,6 @@ function getDeviation(value, min, max) {
     return null;
 }
 
-/**
- * Dimension status:
- * - "out" if ANY sample of this dimension is OOT
- * - otherwise "ok"
- */
 function getDimensionStatus(measurement) {
     const samples = normalizeArray(measurement.samples);
 
@@ -52,10 +47,6 @@ function getDimensionStatus(measurement) {
         : 'ok';
 }
 
-/**
- * Report-level summary:
- * Count UNIQUE samples that are out of tolerance
- */
 function getOutOfToleranceSampleCount(measurements) {
     const outSamples = new Set();
 
@@ -92,17 +83,25 @@ InspectionManager.renderAllReports = async function () {
     try {
         batches = await api.getBatches();
     } catch (err) {
-        console.error('Failed to load batches', err);
+        console.error('❌ Failed to load batches', err);
         container.innerHTML = `<p>Error loading inspection reports.</p>`;
         return;
     }
 
     const inspections = [];
 
+    // 🔒 CRITICAL FIX: normalize inspections AND measurements HERE
     batches.forEach(batch => {
-        normalizeArray(batch.inspections).forEach((inspection, inspectionIndex) => {
+        const inspectionsArr = Array.isArray(batch.inspections)
+            ? batch.inspections
+            : [];
+
+        inspectionsArr.forEach((inspection, inspectionIndex) => {
             inspections.push({
                 ...inspection,
+                measurements: Array.isArray(inspection.measurements)
+                    ? inspection.measurements
+                    : [],
                 batchId: batch._id,
                 inspectionIndex,
                 batchNumber: batch.batchNumber || '—',
@@ -248,15 +247,19 @@ InspectionManager.deleteInspection = async function (inspectionIndex) {
     let counter = 0;
 
     for (const batch of batches) {
-        const inspections = normalizeArray(batch.inspections);
+        const inspectionsArr = Array.isArray(batch.inspections)
+            ? batch.inspections
+            : [];
 
-        if (inspectionIndex < counter + inspections.length) {
-            inspections.splice(inspectionIndex - counter, 1);
-            await api.updateBatch(batch._id, { inspections });
+        if (inspectionIndex < counter + inspectionsArr.length) {
+            inspectionsArr.splice(inspectionIndex - counter, 1);
+            await api.updateBatch(batch._id, {
+                inspections: inspectionsArr
+            });
             break;
         }
 
-        counter += inspections.length;
+        counter += inspectionsArr.length;
     }
 
     await InspectionManager.renderAllReports();
@@ -267,15 +270,9 @@ InspectionManager.deleteInspection = async function (inspectionIndex) {
    ============================== */
 
 InspectionManager.clearForm = function () {
-    const preview = document.getElementById('inspectionFormPreview');
-    if (preview) preview.classList.add('hidden');
-
-    const batchSelect = document.getElementById('inspectionBatchSelect');
-    if (batchSelect) batchSelect.value = '';
-
-    const inspectorInput = document.getElementById('inspectorName');
-    if (inspectorInput) inspectorInput.value = '';
-
+    document.getElementById('inspectionFormPreview')?.classList.add('hidden');
+    document.getElementById('inspectionBatchSelect').value = '';
+    document.getElementById('inspectorName').value = '';
     this.currentSampleSize = 1;
     this.currentBatchForInspection = null;
 };
@@ -289,4 +286,4 @@ window.saveInspectionFromTab = () => InspectionManager.saveFromTab?.();
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions?.();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
 
-console.log('✅ InspectionManager loaded (SAFE MODE)');
+console.log('✅ InspectionManager loaded (FINAL – null-safe)');
