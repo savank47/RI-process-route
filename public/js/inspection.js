@@ -149,6 +149,8 @@ InspectionManager.saveFromTab = async function () {
         return {
             name: dim.name,
             unit: dim.unit,
+            min: dim.minValue,
+            max: dim.maxValue,
             target: `${dim.minValue} – ${dim.maxValue} ${dim.unit}`,
             samples
         };
@@ -159,10 +161,19 @@ InspectionManager.saveFromTab = async function () {
         return;
     }
 
+    // ✅ Determine overall inspection status (ONCE)
+    const overallStatus = measurements.some(m =>
+        m.samples.some(s =>
+            typeof s.value === 'number' &&
+            (s.value < m.min || s.value > m.max)
+        )
+    ) ? 'rejected' : 'approved';
+
     const inspection = {
-        timestamp: new Date().toISOString(), // used as delete key
+        timestamp: new Date().toISOString(),
         inspector,
         sampleSize: this.currentSampleSize,
+        overallStatus,
         measurements
     };
 
@@ -174,7 +185,10 @@ InspectionManager.saveFromTab = async function () {
     this.clearForm();
     await this.renderAllReports();
 
-    UI.showToast('Inspection saved', 'success');
+    UI.showToast(
+        `Inspection saved (${overallStatus.toUpperCase()})`,
+        overallStatus === 'approved' ? 'success' : 'error'
+    );
 };
 
 // --------------------
@@ -185,7 +199,6 @@ InspectionManager.renderAllReports = async function () {
     const batches = await api.getBatches();
     let inspections = [];
 
-    // Flatten inspections and keep only valid ones
     batches.forEach(b => {
         (b.inspections || []).forEach(i => {
             if (!i || !Array.isArray(i.measurements)) return;
@@ -207,10 +220,26 @@ InspectionManager.renderAllReports = async function () {
     }
 
     container.innerHTML = inspections.map((i, index) => `
-        <div class="border rounded p-4 mb-4">
+        <div class="
+            border rounded p-4 mb-4
+            ${i.overallStatus === 'approved'
+                ? 'border-l-4 border-green-500'
+                : 'border-l-4 border-red-500'}
+        ">
             <div class="flex justify-between items-start">
                 <div>
-                    <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
+                    <div class="flex items-center gap-3">
+                        <h4 class="font-bold">${i.batchNumber} – ${i.itemName}</h4>
+                        <span class="
+                            text-xs font-semibold px-2 py-1 rounded
+                            ${i.overallStatus === 'approved'
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'}
+                        ">
+                            ${(i.overallStatus || 'unknown').toUpperCase()}
+                        </span>
+                    </div>
+
                     <p class="text-sm">${new Date(i.timestamp).toLocaleString()}</p>
                     <p class="text-sm">Inspector: ${i.inspector}</p>
                 </div>
@@ -223,7 +252,7 @@ InspectionManager.renderAllReports = async function () {
             </div>
 
             ${i.measurements.map(m => `
-                <div class="mt-2">
+                <div class="mt-3">
                     <strong>${m.name}</strong> (Target: ${m.target})
                     <div class="flex gap-2 mt-1">
                         ${Array.isArray(m.samples) ? m.samples.map(s => `
@@ -237,7 +266,6 @@ InspectionManager.renderAllReports = async function () {
         </div>
     `).join('');
 };
-
 
 // --------------------
 // Delete inspection (HARD DELETE)
@@ -255,7 +283,6 @@ InspectionManager.deleteInspection = async function (index) {
     const batch = batches.find(b => b._id === inspection.batchId);
     if (!batch || !Array.isArray(batch.inspections)) return;
 
-    // Remove inspection using timestamp as unique key
     batch.inspections = batch.inspections.filter(
         i => i.timestamp !== inspection.timestamp
     );
@@ -285,4 +312,4 @@ window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
 
-console.log('✅ InspectionManager base loaded');
+console.log('✅ InspectionManager loaded successfully');
