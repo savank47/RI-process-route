@@ -164,7 +164,7 @@
 }
 
 .sample-label {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   font-weight: 500;
   color: #6b7280; /* gray-500 */
   margin-bottom: 0.1rem;
@@ -183,7 +183,7 @@
 }
 
 .sample-chip {
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   margin-top: 0.1rem;
 }
 
