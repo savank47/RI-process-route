@@ -73,14 +73,19 @@ function getOutOfToleranceSampleCount(measurements) {
 
 /* 🔽 ADDED: total samples measured (auto) */
 function getTotalSamplesMeasured(measurements) {
-    let count = 0;
-    normalizeArray(measurements).forEach(m => {
-        normalizeArray(m.samples).forEach(s => {
-            if (isNumber(s.value)) count++;
+    const sampleSet = new Set();
+
+    measurements.forEach(m => {
+        m.samples.forEach(s => {
+            if (typeof s.value === 'number') {
+                sampleSet.add(s.sampleNumber);
+            }
         });
     });
-    return count;
+
+    return sampleSet.size;
 }
+
 
 /* ==============================
    UI TAB ENTRY (MANDATORY)
