@@ -159,14 +159,17 @@ class BatchManager {
                 <div class="batch-card border border-gray-200 rounded-lg p-4 ${isComplete ? 'bg-green-50' : 'bg-white'}">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-bold text-gray-800">${batch.batchNumber}</h3>
-                        <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">${batch.priority}</span>
+                        
+                        <div>
+                            <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">${batch.priority}</span>
                       
                         
-                        <button
-                          class="text-xs text-blue-600 hover:underline"
-                          onclick="BatchManager.editRawMaterialBatch('${batch._id}')">
-                          Edit RM Batch
-                        </button>
+                            <button>
+                              class="text-xs text-blue-600 hover:underline"
+                              onclick="BatchManager.editRawMaterialBatch('${batch._id}')">
+                              Edit RM Batch
+                            </button>
+                        </div>
 
                         
                     </div>
@@ -207,23 +210,30 @@ class BatchManager {
 }
 
 BatchManager.editRawMaterialBatch = async function (batchId) {
-    const batch = await api.getBatch(batchId);
-    if (!batch) return;
+    const batches = await api.getBatches();
+    const batch = batches.find(b => b._id === batchId);
+
+    if (!batch) {
+        UI.showToast('Batch not found', 'error');
+        return;
+    }
 
     const newRM = prompt(
         'Enter Raw Material Batch No:',
         batch.rawMaterialBatchNo || ''
     );
 
-    if (newRM === null) return; // cancelled
+    if (newRM === null) return; // user cancelled
 
-    batch.rawMaterialBatchNo = newRM.trim() || null;
+    const updatedValue = newRM.trim() || null;
 
     await api.updateBatch(batchId, {
-        rawMaterialBatchNo: batch.rawMaterialBatchNo
+        rawMaterialBatchNo: updatedValue
     });
 
     UI.showToast('Raw Material Batch updated', 'success');
+
+    // Re-render batch cards so UI updates immediately
     await this.render();
 };
 
