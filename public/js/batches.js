@@ -9,8 +9,11 @@ class BatchManager {
     static async updateItemSelect() {
         const select = document.getElementById('batchItemSelect');
         const items = await api.getItems();
-        select.innerHTML = '<option value="">-- Select Item --</option>' + 
-            items.map(item => `<option value="${item._id}">${item.name} (${item.code})</option>`).join('');
+        select.innerHTML =
+            '<option value="">-- Select Item --</option>' +
+            items.map(item =>
+                `<option value="${item._id}">${item.name} (${item.code})</option>`
+            ).join('');
     }
 
     static async previewProcessRoute() {
@@ -25,14 +28,14 @@ class BatchManager {
 
         const items = await api.getItems();
         const item = items.find(i => i._id === itemId);
-        
+
         if (!item || item.processRoute.length === 0) {
             preview.classList.add('hidden');
             return;
         }
 
         preview.classList.remove('hidden');
-        
+
         const colorClasses = {
             gray: 'border-l-gray-400 bg-gray-50',
             red: 'border-l-red-400 bg-red-50',
@@ -53,7 +56,9 @@ class BatchManager {
                         <div class="border-l-4 ${colorClasses[proc.color]} rounded-r-lg px-3 py-2">
                             <span class="font-semibold text-sm">${proc.name}</span>
                         </div>
-                        ${i < item.processRoute.length - 1 ? '<i class="fas fa-chevron-right text-gray-400 mx-1"></i>' : ''}
+                        ${i < item.processRoute.length - 1
+                            ? '<i class="fas fa-chevron-right text-gray-400 mx-1"></i>'
+                            : ''}
                     </div>
                 `).join('')}
             </div>
@@ -67,8 +72,10 @@ class BatchManager {
         const priority = document.getElementById('batchPriority').value;
         const targetDate = document.getElementById('batchTargetDate').value;
         const customer = document.getElementById('batchCustomer').value.trim();
-        const rawMaterialBatchNo = document.getElementById('batchRawMaterialBatch')?.value.trim() || null;
 
+        // 🔽 Optional Raw Material Batch
+        const rawMaterialBatchNo =
+            document.getElementById('batchRawMaterialBatch')?.value.trim() || null;
 
         if (!batchNumber || !quantity || !itemId) {
             UI.showToast('Please fill all required batch details', 'error');
@@ -84,15 +91,17 @@ class BatchManager {
             priority,
             targetDate,
             customer,
+
             itemId,
             itemName: item.name,
             itemCode: item.code,
-            
+
             // 🔽 copied from item master
             material: item.material || null,
-            // 🔽 NEW (optional)
+
+            // 🔽 NEW — optional
             rawMaterialBatchNo,
-            
+
             itemDimensions: item.dimensions || [],
             processes: item.processRoute.map(proc => ({
                 ...proc,
@@ -108,6 +117,7 @@ class BatchManager {
         this.clearForm();
         await this.render();
         await UI.updateStats();
+
         UI.showToast(`Batch "${batchNumber}" created!`);
     }
 
@@ -123,11 +133,12 @@ class BatchManager {
 
     static async delete(batchId) {
         if (!confirm('Delete this batch?')) return;
-        
+
         await api.deleteBatch(batchId);
         await this.render();
         await TrackingManager.updateBatchSelect();
         await UI.updateStats();
+
         UI.showToast('Batch deleted');
     }
 
@@ -138,14 +149,28 @@ class BatchManager {
     static async render() {
         const container = document.getElementById('batchesList');
         const filter = document.getElementById('batchFilter').value;
+        const rmSearch =
+            document.getElementById('rmBatchSearch')?.value.trim().toLowerCase() || '';
+
         const batches = await api.getBatches();
-        
         let filteredBatches = [...batches];
-        if (filter === 'active') filteredBatches = filteredBatches.filter(b => !b.completedAt);
-        if (filter === 'completed') filteredBatches = filteredBatches.filter(b => b.completedAt);
+
+        if (filter === 'active')
+            filteredBatches = filteredBatches.filter(b => !b.completedAt);
+
+        if (filter === 'completed')
+            filteredBatches = filteredBatches.filter(b => b.completedAt);
+
+        // 🔽 Traceability search by Raw Material Batch
+        if (rmSearch) {
+            filteredBatches = filteredBatches.filter(b =>
+                (b.rawMaterialBatchNo || '').toLowerCase().includes(rmSearch)
+            );
+        }
 
         if (filteredBatches.length === 0) {
-            container.innerHTML = '<p class="text-gray-500 text-center py-8 col-span-3">No batches found.</p>';
+            container.innerHTML =
+                '<p class="text-gray-500 text-center py-8 col-span-3">No batches found.</p>';
             return;
         }
 
@@ -159,47 +184,72 @@ class BatchManager {
                 <div class="batch-card border border-gray-200 rounded-lg p-4 ${isComplete ? 'bg-green-50' : 'bg-white'}">
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-bold text-gray-800">${batch.batchNumber}</h3>
-                        
-                        <div>
-                            <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">${batch.priority}</span>
-                      
-                        
-                            <button>
-                              class="text-xs text-blue-600 hover:underline"
-                              onclick="BatchManager.editRawMaterialBatch('${batch._id}')">
-                              Edit RM Batch
+
+                        <div class="flex flex-col items-end gap-1">
+                            <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">
+                                ${batch.priority}
+                            </span>
+
+                            <button
+                                class="text-xs text-blue-600 hover:underline"
+                                onclick="BatchManager.editRawMaterialBatch('${batch._id}')">
+                                Edit RM Batch
                             </button>
                         </div>
-
-                        
                     </div>
-                    <p class="text-sm text-gray-600">${batch.itemName} (${batch.itemCode})</p>
+
+                    <p class="text-sm text-gray-600">
+                        ${batch.itemName} (${batch.itemCode})
+                    </p>
+
                     ${batch.rawMaterialBatchNo ? `
-                          <div class="text-sm text-gray-600">
+                        <div class="text-sm text-gray-600">
                             <strong>Raw Material Batch:</strong> ${batch.rawMaterialBatchNo}
-                          </div>
-                        ` : `
-                          <div class="text-sm text-gray-400 italic">
+                        </div>
+                    ` : `
+                        <div class="text-sm text-gray-400 italic">
                             Raw Material Batch: —
-                          </div>
-                        `}
-                    <p class="text-sm font-medium text-blue-600 mt-1">Qty: ${batch.quantity}</p>
-                    ${batch.customer ? `<p class="text-xs text-gray-500 mt-1"><i class="fas fa-user mr-1"></i>${batch.customer}</p>` : ''}
-                    ${batch.itemDimensions && batch.itemDimensions.length > 0 ? `<p class="text-xs text-purple-600 mt-1"><i class="fas fa-ruler-combined mr-1"></i>${batch.itemDimensions.length} dimensions defined</p>` : ''}
+                        </div>
+                    `}
+
+                    <p class="text-sm font-medium text-blue-600 mt-1">
+                        Qty: ${batch.quantity}
+                    </p>
+
+                    ${batch.customer
+                        ? `<p class="text-xs text-gray-500 mt-1">
+                             <i class="fas fa-user mr-1"></i>${batch.customer}
+                           </p>`
+                        : ''}
+
+                    ${batch.itemDimensions?.length
+                        ? `<p class="text-xs text-purple-600 mt-1">
+                             <i class="fas fa-ruler-combined mr-1"></i>
+                             ${batch.itemDimensions.length} dimensions defined
+                           </p>`
+                        : ''}
+
                     <div class="mt-3">
                         <div class="flex justify-between text-xs text-gray-600 mb-1">
                             <span>Progress</span>
                             <span>${completed}/${total} steps (${progress}%)</span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-2">
-                            <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all" style="width: ${progress}%"></div>
+                            <div class="bg-gradient-to-r from-blue-500 to-green-500 h-2 rounded-full transition-all"
+                                 style="width: ${progress}%"></div>
                         </div>
                     </div>
+
                     <div class="mt-3 flex gap-2">
-                        <button onclick="TrackingManager.trackBatch('${batch._id}')" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition">
+                        <button
+                            onclick="TrackingManager.trackBatch('${batch._id}')"
+                            class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded text-sm transition">
                             <i class="fas fa-tasks mr-1"></i>Track
                         </button>
-                        <button onclick="BatchManager.delete('${batch._id}')" class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm transition">
+
+                        <button
+                            onclick="BatchManager.delete('${batch._id}')"
+                            class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm transition">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
@@ -208,6 +258,10 @@ class BatchManager {
         }).join('');
     }
 }
+
+/* ==============================
+   Edit Raw Material Batch (Later)
+   ============================== */
 
 BatchManager.editRawMaterialBatch = async function (batchId) {
     const batches = await api.getBatches();
@@ -223,7 +277,7 @@ BatchManager.editRawMaterialBatch = async function (batchId) {
         batch.rawMaterialBatchNo || ''
     );
 
-    if (newRM === null) return; // user cancelled
+    if (newRM === null) return;
 
     const updatedValue = newRM.trim() || null;
 
@@ -232,11 +286,8 @@ BatchManager.editRawMaterialBatch = async function (batchId) {
     });
 
     UI.showToast('Raw Material Batch updated', 'success');
-
-    // Re-render batch cards so UI updates immediately
-    await this.render();
+    await BatchManager.render();
 };
-
 
 // Make globally accessible
 window.BatchManager = BatchManager;
