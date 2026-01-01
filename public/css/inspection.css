@@ -345,47 +345,37 @@
   }
 
   /* ---------------------------------
-     CRITICAL FIX:
-     Kill Tailwind full-height layouts
-     (this removes the blank first page)
+     Reset document canvas
      --------------------------------- */
-  html,
-  body,
-  #app,
-  #root,
-  .min-h-screen,
-  .min-h-full,
-  .h-screen,
-  .h-full {
-    min-height: auto !important;
-    height: auto !important;
-  }
-
   html,
   body {
     margin: 0 !important;
     padding: 0 !important;
-    height: auto !important;
-    min-height: auto !important;
-    display: block !important;
     background: #ffffff !important;
     font-size: 11pt;
     color: #000;
-  }
-
-  /* Kill ALL layout containers above reports */
-  body > * {
-    display: none !important;
     height: auto !important;
     min-height: auto !important;
   }
 
   /* ---------------------------------
-     REMOVE non-report sections completely
+     Hide EVERYTHING by default
      --------------------------------- */
-  header,
-  footer,
-  nav,
+  body * {
+    display: none !important;
+  }
+
+  /* ---------------------------------
+     Re-enable ONLY inspection content
+     --------------------------------- */
+  #content-inspections,
+  #content-inspections * {
+    display: block !important;
+  }
+
+  /* ---------------------------------
+     Remove non-report sections inside inspections
+     --------------------------------- */
   .create-inspection-form,
   .inspection-reports-header,
   .export-btn,
@@ -395,66 +385,57 @@
   }
 
   /* ---------------------------------
-     Ensure inspection content starts immediately
+     Neutralize Tailwind layout constraints
      --------------------------------- */
   #content-inspections {
-     /*  */
-     display: block !important;
-     /*  */
     position: static !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-
-    /* Prevent phantom page before content */
-    page-break-before: auto !important;
-    break-before: auto !important;
   }
 
-   #content-inspections * {
-    display: revert !important;
-  }
-
-  /* ---------------------------------
-     Neutralize layout containers
-     --------------------------------- */
   .container,
   .container-sm,
   .container-md,
   .container-lg,
   .container-xl,
-  .container-xxl {
+  .container-xxl,
+  .min-h-screen,
+  .min-h-full,
+  .h-screen,
+  .h-full {
     max-width: none !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+    min-height: auto !important;
+    height: auto !important;
   }
 
   /* ---------------------------------
      Report cards
      --------------------------------- */
   .report-card {
+    display: block !important;
     width: 100% !important;
     margin-bottom: 10mm;
     padding: 8mm;
     border: 1px solid #d1d5db;
     box-shadow: none !important;
-
-    /* DO NOT SPLIT REPORT */
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
   /* ---------------------------------
-     Dimension blocks (keep intact)
+     Dimension blocks (never split)
      --------------------------------- */
   .dimension-block {
+    display: block !important;
     break-inside: avoid;
     page-break-inside: avoid;
     margin-bottom: 6mm;
   }
 
-  /* Keep dimension header + samples together */
   .dimension-header {
     break-after: avoid;
     page-break-after: avoid;
@@ -464,6 +445,7 @@
      Landscape width usage
      --------------------------------- */
   .sample-list {
+    display: flex !important;
     width: 100%;
     gap: 12px;
   }
