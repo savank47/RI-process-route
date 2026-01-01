@@ -332,7 +332,7 @@
 
 /* =========================================================
    PRINT STYLES — INSPECTION REPORTS
-   TRUE LANDSCAPE DOCUMENT MODE (FINAL — STABLE)
+   TRUE LANDSCAPE DOCUMENT MODE (STABLE)
    ========================================================= */
 @media print {
 
@@ -353,29 +353,32 @@
     padding: 0 !important;
     background: #ffffff !important;
     font-size: 11pt;
-    color: #000;
+    color: #000000;
     height: auto !important;
     min-height: auto !important;
   }
 
   /* ---------------------------------
-     Hide EVERYTHING by default
+     VISIBILITY-BASED HIDING (SAFE)
      --------------------------------- */
   body * {
-    display: none !important;
+    visibility: hidden !important;
   }
 
   /* ---------------------------------
-     Re-enable ONLY inspection content
+     Show ONLY inspection content
      --------------------------------- */
   #content-inspections,
   #content-inspections * {
-    display: block !important;
+    visibility: visible !important;
   }
 
   /* ---------------------------------
-     Remove non-report sections inside inspections
+     Hard remove known non-report sections
      --------------------------------- */
+  header,
+  footer,
+  nav,
   .create-inspection-form,
   .inspection-reports-header,
   .export-btn,
@@ -385,11 +388,12 @@
   }
 
   /* ---------------------------------
-     Neutralize Tailwind layout constraints
+     Break out of Tailwind layout traps
      --------------------------------- */
   #content-inspections {
     position: static !important;
     width: 100% !important;
+    max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
   }
@@ -404,48 +408,47 @@
   .min-h-full,
   .h-screen,
   .h-full {
-    max-width: none !important;
     width: 100% !important;
+    max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
-    min-height: auto !important;
     height: auto !important;
+    min-height: auto !important;
   }
 
   /* ---------------------------------
-     Report cards
+     Report cards (document sections)
      --------------------------------- */
   .report-card {
-    display: block !important;
     width: 100% !important;
     margin-bottom: 10mm;
     padding: 8mm;
     border: 1px solid #d1d5db;
     box-shadow: none !important;
-    break-inside: avoid;
+
+    /* Prevent report splitting */
     page-break-inside: avoid;
+    break-inside: avoid;
   }
 
   /* ---------------------------------
-     Dimension blocks (never split)
+     Dimension blocks (CRITICAL FIX)
      --------------------------------- */
   .dimension-block {
-    display: block !important;
-    break-inside: avoid;
     page-break-inside: avoid;
+    break-inside: avoid;
     margin-bottom: 6mm;
   }
 
   .dimension-header {
-    break-after: avoid;
     page-break-after: avoid;
+    break-after: avoid;
   }
 
   /* ---------------------------------
      Landscape width usage
      --------------------------------- */
   .sample-list {
-    display: flex !important;
     width: 100%;
     gap: 12px;
   }
