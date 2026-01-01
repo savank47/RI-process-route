@@ -362,7 +362,8 @@
   .create-inspection-form,
   .inspection-reports-header,
   .export-btn,
-  .delete-btn {
+  .delete-btn,
+  .no-print {
     display: none !important;
   }
 
