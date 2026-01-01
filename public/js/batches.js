@@ -160,6 +160,15 @@ class BatchManager {
                     <div class="flex justify-between items-start mb-2">
                         <h3 class="font-bold text-gray-800">${batch.batchNumber}</h3>
                         <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">${batch.priority}</span>
+                      
+                        
+                        <button
+                          class="text-xs text-blue-600 hover:underline"
+                          onclick="BatchManager.editRawMaterialBatch('${batch._id}')">
+                          Edit RM Batch
+                        </button>
+
+                        
                     </div>
                     <p class="text-sm text-gray-600">${batch.itemName} (${batch.itemCode})</p>
                     ${batch.rawMaterialBatchNo ? `
@@ -196,6 +205,28 @@ class BatchManager {
         }).join('');
     }
 }
+
+BatchManager.editRawMaterialBatch = async function (batchId) {
+    const batch = await api.getBatch(batchId);
+    if (!batch) return;
+
+    const newRM = prompt(
+        'Enter Raw Material Batch No:',
+        batch.rawMaterialBatchNo || ''
+    );
+
+    if (newRM === null) return; // cancelled
+
+    batch.rawMaterialBatchNo = newRM.trim() || null;
+
+    await api.updateBatch(batchId, {
+        rawMaterialBatchNo: batch.rawMaterialBatchNo
+    });
+
+    UI.showToast('Raw Material Batch updated', 'success');
+    await this.render();
+};
+
 
 // Make globally accessible
 window.BatchManager = BatchManager;
