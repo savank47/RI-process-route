@@ -344,6 +344,23 @@
     margin: 12mm;
   }
 
+  /* ---------------------------------
+     CRITICAL FIX:
+     Kill Tailwind full-height layouts
+     (this removes the blank first page)
+     --------------------------------- */
+  html,
+  body,
+  #app,
+  #root,
+  .min-h-screen,
+  .min-h-full,
+  .h-screen,
+  .h-full {
+    min-height: auto !important;
+    height: auto !important;
+  }
+
   html, body {
     margin: 0 !important;
     padding: 0 !important;
@@ -354,7 +371,6 @@
 
   /* ---------------------------------
      REMOVE non-report sections completely
-     (no visibility hacks)
      --------------------------------- */
   header,
   footer,
@@ -368,16 +384,22 @@
   }
 
   /* ---------------------------------
-     Ensure inspection content is normal flow
+     Ensure inspection content starts immediately
      --------------------------------- */
   #content-inspections {
     position: static !important;
     width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
+
+    /* Prevent phantom page before content */
+    page-break-before: auto !important;
+    break-before: auto !important;
   }
 
-  /* Neutralize layout containers */
+  /* ---------------------------------
+     Neutralize layout containers
+     --------------------------------- */
   .container,
   .container-sm,
   .container-md,
@@ -406,7 +428,7 @@
   }
 
   /* ---------------------------------
-     Dimension blocks (KEY FIX)
+     Dimension blocks (keep intact)
      --------------------------------- */
   .dimension-block {
     break-inside: avoid;
@@ -414,7 +436,7 @@
     margin-bottom: 6mm;
   }
 
-  /* Keep header + samples together */
+  /* Keep dimension header + samples together */
   .dimension-header {
     break-after: avoid;
     page-break-after: avoid;
