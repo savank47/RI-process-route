@@ -162,6 +162,15 @@ class BatchManager {
                         <span class="text-xs px-2 py-1 rounded ${CONFIG.PRIORITY_COLORS[batch.priority]}">${batch.priority}</span>
                     </div>
                     <p class="text-sm text-gray-600">${batch.itemName} (${batch.itemCode})</p>
+                    ${batch.rawMaterialBatchNo ? `
+                          <div class="text-sm text-gray-600">
+                            <strong>Raw Material Batch:</strong> ${batch.rawMaterialBatchNo}
+                          </div>
+                        ` : `
+                          <div class="text-sm text-gray-400 italic">
+                            Raw Material Batch: —
+                          </div>
+                        `}
                     <p class="text-sm font-medium text-blue-600 mt-1">Qty: ${batch.quantity}</p>
                     ${batch.customer ? `<p class="text-xs text-gray-500 mt-1"><i class="fas fa-user mr-1"></i>${batch.customer}</p>` : ''}
                     ${batch.itemDimensions && batch.itemDimensions.length > 0 ? `<p class="text-xs text-purple-600 mt-1"><i class="fas fa-ruler-combined mr-1"></i>${batch.itemDimensions.length} dimensions defined</p>` : ''}
