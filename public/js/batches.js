@@ -67,6 +67,8 @@ class BatchManager {
         const priority = document.getElementById('batchPriority').value;
         const targetDate = document.getElementById('batchTargetDate').value;
         const customer = document.getElementById('batchCustomer').value.trim();
+        const rawMaterialBatchNo = document.getElementById('batchRawMaterialBatch')?.value.trim() || null;
+
 
         if (!batchNumber || !quantity || !itemId) {
             UI.showToast('Please fill all required batch details', 'error');
@@ -85,6 +87,12 @@ class BatchManager {
             itemId,
             itemName: item.name,
             itemCode: item.code,
+            
+            // 🔽 copied from item master
+            material: item.material || null,
+            // 🔽 NEW (optional)
+            rawMaterialBatchNo,
+            
             itemDimensions: item.dimensions || [],
             processes: item.processRoute.map(proc => ({
                 ...proc,
