@@ -361,12 +361,23 @@
     height: auto !important;
   }
 
-  html, body {
+  html,
+  body {
     margin: 0 !important;
     padding: 0 !important;
+    height: auto !important;
+    min-height: auto !important;
+    display: block !important;
     background: #ffffff !important;
     font-size: 11pt;
     color: #000;
+  }
+
+  /* Kill ALL layout containers above reports */
+  body > * {
+    display: none !important;
+    height: auto !important;
+    min-height: auto !important;
   }
 
   /* ---------------------------------
@@ -387,6 +398,9 @@
      Ensure inspection content starts immediately
      --------------------------------- */
   #content-inspections {
+     /*  */
+     display: block !important;
+     /*  */
     position: static !important;
     width: 100% !important;
     margin: 0 !important;
@@ -395,6 +409,10 @@
     /* Prevent phantom page before content */
     page-break-before: auto !important;
     break-before: auto !important;
+  }
+
+   #content-inspections * {
+    display: revert !important;
   }
 
   /* ---------------------------------
