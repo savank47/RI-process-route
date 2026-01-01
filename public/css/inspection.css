@@ -334,154 +334,105 @@
    PRINT STYLES — INSPECTION REPORTS
    TRUE LANDSCAPE DOCUMENT MODE (FINAL — STABLE)
    ========================================================= */
-
 @media print {
 
   /* ---------------------------------
-     Page setup (paper)
+     Page setup
      --------------------------------- */
   @page {
     size: A4 landscape;
     margin: 12mm;
   }
 
-  /* ---------------------------------
-     HARD RESET — clear all page breaks
-     (prevents blank first page)
-     --------------------------------- */
-  * {
-    page-break-before: auto !important;
-    page-break-after: auto !important;
-    page-break-inside: auto !important;
-    break-before: auto !important;
-    break-after: auto !important;
-    break-inside: auto !important;
-  }
-
-  /* ---------------------------------
-     Reset document canvas
-     --------------------------------- */
-  html,
-  body {
-    width: 100% !important;
-    max-width: none !important;
+  html, body {
     margin: 0 !important;
     padding: 0 !important;
     background: #ffffff !important;
     font-size: 11pt;
-    color: #000000;
+    color: #000;
   }
 
   /* ---------------------------------
-     REMOVE non-report UI from layout
+     REMOVE non-report sections completely
+     (no visibility hacks)
      --------------------------------- */
   header,
   footer,
   nav,
-  .export-btn,
-  .delete-btn,
   .create-inspection-form,
-  .inspection-reports-header {
+  .inspection-reports-header,
+  .export-btn,
+  .delete-btn {
     display: none !important;
   }
 
   /* ---------------------------------
-     Print ONLY inspection content
-     --------------------------------- */
-  body * {
-    visibility: hidden !important;
-  }
-
-  #content-inspections,
-  #content-inspections * {
-    visibility: visible !important;
-  }
-
-  /* ---------------------------------
-     Break out of app layout containers
+     Ensure inspection content is normal flow
      --------------------------------- */
   #content-inspections {
     position: static !important;
     width: 100% !important;
-    max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
-  /* Neutralize centered wrappers */
+  /* Neutralize layout containers */
   .container,
   .container-sm,
   .container-md,
   .container-lg,
   .container-xl,
   .container-xxl {
-    width: 100% !important;
     max-width: none !important;
+    width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
   }
 
   /* ---------------------------------
-     Report card = document section
+     Report cards
      --------------------------------- */
-  .report-card,
-  .report-card.print-landscape {
+  .report-card {
     width: 100% !important;
-    max-width: none !important;
-    margin: 0 0 10mm 0 !important;
-    padding: 8mm !important;
+    margin-bottom: 10mm;
+    padding: 8mm;
     border: 1px solid #d1d5db;
     box-shadow: none !important;
-    page-break-inside: avoid;
+
+    /* DO NOT SPLIT REPORT */
     break-inside: avoid;
+    page-break-inside: avoid;
   }
 
   /* ---------------------------------
-     TRUE LANDSCAPE CONTENT WIDENING
+     Dimension blocks (KEY FIX)
+     --------------------------------- */
+  .dimension-block {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 6mm;
+  }
+
+  /* Keep header + samples together */
+  .dimension-header {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  /* ---------------------------------
+     Landscape width usage
      --------------------------------- */
   .sample-list {
-    width: 100% !important;
-    justify-content: flex-start !important;
+    width: 100%;
     gap: 12px;
   }
 
   /* ---------------------------------
-     Prevent internal page splits
-     --------------------------------- */
-  .dimension-block {
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* ---------------------------------
-     Kill web-only visuals
+     Remove web-only visuals
      --------------------------------- */
   * {
     box-shadow: none !important;
-    border-radius: 0 !important;
     background-image: none !important;
-    transition: none !important;
+    border-radius: 0 !important;
   }
-
-   /* ---------------------------------
-   HARD PREVENT DIMENSION SPLITTING
-   --------------------------------- */
-
-   /* Keep entire dimension together */
-   .dimension-block {
-     page-break-inside: avoid !important;
-     break-inside: avoid !important;
-     page-break-before: avoid !important;
-     break-before: avoid !important;
-     page-break-after: avoid !important;
-     break-after: avoid !important;
-   }
-   
-   /* Prevent header from separating from samples */
-   .dimension-header,
-   .dimension-name {
-     page-break-after: avoid !important;
-     break-after: avoid !important;
-   }
-
 }
