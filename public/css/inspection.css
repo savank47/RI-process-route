@@ -462,4 +462,26 @@
     background-image: none !important;
     transition: none !important;
   }
+
+   /* ---------------------------------
+   HARD PREVENT DIMENSION SPLITTING
+   --------------------------------- */
+
+/* Keep entire dimension together */
+.dimension-block {
+  page-break-inside: avoid !important;
+  break-inside: avoid !important;
+  page-break-before: avoid !important;
+  break-before: avoid !important;
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+}
+
+/* Prevent header from separating from samples */
+.dimension-header,
+.dimension-name {
+  page-break-after: avoid !important;
+  break-after: avoid !important;
+}
+
 }
