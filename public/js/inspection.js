@@ -71,6 +71,17 @@ function getOutOfToleranceSampleCount(measurements) {
     return set.size;
 }
 
+/* 🔽 ADDED: total samples measured (auto) */
+function getTotalSamplesMeasured(measurements) {
+    let count = 0;
+    normalizeArray(measurements).forEach(m => {
+        normalizeArray(m.samples).forEach(s => {
+            if (isNumber(s.value)) count++;
+        });
+    });
+    return count;
+}
+
 /* ==============================
    UI TAB ENTRY (MANDATORY)
    ============================== */
@@ -98,7 +109,7 @@ InspectionManager.updateBatchSelect = async function () {
 };
 
 /* ==============================
-   Sample Size Selection (RESTORED)
+   Sample Size Selection
    ============================== */
 
 InspectionManager.setSampleSize = function (value) {
@@ -114,7 +125,6 @@ InspectionManager.setSampleSize = function (value) {
 
     this.currentSampleSize = size;
 
-    // Rebuild preview if batch already selected
     if (document.getElementById('inspectionBatchSelect').value) {
         this.previewDimensions();
     }
@@ -194,13 +204,18 @@ InspectionManager.saveFromTab = async function () {
         return;
     }
 
+    /* 🔽 ADDED: optional invoice fields */
+    const invoiceNumber =
+        document.getElementById('inspectionInvoiceNumber')?.value.trim() || null;
+    const invoiceDate =
+        document.getElementById('inspectionInvoiceDate')?.value || null;
+
     const measurements = batch.itemDimensions.map((dim, dIdx) => {
         const samples = [];
 
         for (let s = 0; s < this.currentSampleSize; s++) {
             const input = document.getElementById(`inspection-${s}-${dIdx}`);
             const value = input && input.value !== '' ? parseFloat(input.value) : null;
-
             samples.push({ sampleNumber: s + 1, value });
         }
 
@@ -225,7 +240,13 @@ InspectionManager.saveFromTab = async function () {
         timestamp: new Date().toISOString(),
         inspector,
         sampleSize: this.currentSampleSize,
-        measurements
+        measurements,
+
+        /* 🔽 ADDED */
+        invoice: {
+            number: invoiceNumber,
+            date: invoiceDate
+        }
     };
 
     if (!Array.isArray(batch.inspections)) batch.inspections = [];
@@ -277,35 +298,56 @@ InspectionManager.renderAllReports = async function () {
    ============================== */
 
 function renderReportCard(report, index) {
+    const invoiceNo = report.invoice?.number || '—';
+    const invoiceDate = report.invoice?.date
+        ? new Date(report.invoice.date).toLocaleDateString()
+        : '—';
+
     return `
         <div class="report-card">
             <div class="report-header" onclick="toggleInspectionReport(this)">
                 <div>
+                    <div class="company-name">ROHIT INDUSTRIES</div>
+
                     <div class="report-title">
                         ${report.batchNumber} – ${report.itemName}
                     </div>
+
                     <div class="report-meta">${new Date(report.timestamp).toLocaleString()}</div>
                     <div class="report-meta">Inspector: ${report.inspector}</div>
+
+                    <div class="report-meta">
+                        Invoice No: ${invoiceNo} |
+                        Invoice Date: ${invoiceDate}
+                    </div>
+
                     <div class="report-summary">
+                        Samples measured: ${getTotalSamplesMeasured(report.measurements)} |
                         Samples out of tolerance:
                         ${getOutOfToleranceSampleCount(report.measurements)}
                     </div>
                 </div>
 
-               <div class="report-actions">
-                 <button class="export-btn subtle"
-                         onclick="event.stopPropagation(); exportSingleReportPDF(this)">
-                   Export PDF
-                 </button>
-               
-                 <button class="delete-btn subtle"
-                         onclick="event.stopPropagation(); InspectionManager.deleteInspection(${index})">
-                   Delete
-                 </button>
-               </div>
+                <div class="report-actions">
+                    <button class="export-btn subtle"
+                            onclick="event.stopPropagation(); exportSingleReportPDF(this)">
+                        Export PDF
+                    </button>
+
+                    <button class="export-btn subtle"
+                            onclick="event.stopPropagation(); InspectionManager.editInvoice(${index})">
+                        Edit Invoice
+                    </button>
+
+                    <button class="delete-btn subtle"
+                            onclick="event.stopPropagation(); InspectionManager.deleteInspection(${index})">
+                        Delete
+                    </button>
+                </div>
             </div>
+
             <div class="report-body">
-               ${report.measurements.map(renderDimensionRow).join('')}
+                ${report.measurements.map(renderDimensionRow).join('')}
             </div>
         </div>
     `;
@@ -371,6 +413,32 @@ InspectionManager.deleteInspection = async function (index) {
     UI.showToast('Inspection deleted', 'success');
 };
 
+/* 🔽 ADDED: Edit invoice later */
+InspectionManager.editInvoice = async function (index) {
+    const inspection = this.currentRenderedInspections[index];
+    if (!inspection) return;
+
+    const number = prompt('Invoice Number:', inspection.invoice?.number || '');
+    if (number === null) return;
+
+    const date = prompt('Invoice Date (YYYY-MM-DD):', inspection.invoice?.date || '');
+
+    const batches = await api.getBatches();
+    const batch = batches.find(b => b._id === inspection.batchId);
+    if (!batch) return;
+
+    batch.inspections = normalizeArray(batch.inspections).map(i =>
+        i.timestamp === inspection.timestamp
+            ? { ...i, invoice: { number: number || null, date: date || null } }
+            : i
+    );
+
+    await api.updateBatch(batch._id, { inspections: batch.inspections });
+    await this.renderAllReports();
+
+    UI.showToast('Invoice updated', 'success');
+};
+
 /* ==============================
    Clear Form
    ============================== */
@@ -384,59 +452,46 @@ InspectionManager.clearForm = function () {
 };
 
 /* ==============================
-   Accodion Logic
+   Accordion Logic
    ============================== */
+
 function toggleInspectionReport(headerEl) {
-  const card = headerEl.closest('.report-card');
+    const card = headerEl.closest('.report-card');
 
-  // Optional: close other open reports
-  document.querySelectorAll('.report-card.open').forEach(c => {
-    if (c !== card) c.classList.remove('open');
-  });
-
-  card.classList.toggle('open');
-}
-
-
-// ==============================
-// PDF Export – Single Inspection Report
-// ==============================
-
-function exportSingleReportPDF(buttonEl) {
-  const reportCard = buttonEl.closest('.report-card');
-  if (!reportCard) return;
-
-  // Save current accordion state
-  const wasOpen = reportCard.classList.contains('open');
-
-  // Ensure report is expanded
-  reportCard.classList.add('open');
-  reportCard.classList.add('print-landscape');
-
-  // Hide all other reports
-  document.querySelectorAll('.report-card').forEach(card => {
-    if (card !== reportCard) {
-      card.style.display = 'none';
-    }
-  });
-
-  // Allow layout to settle, then print
-  setTimeout(() => {
-    window.print();
-
-    // Restore UI
-    document.querySelectorAll('.report-card').forEach(card => {
-      card.style.display = '';
-      card.classList.remove('print-landscape');
+    document.querySelectorAll('.report-card.open').forEach(c => {
+        if (c !== card) c.classList.remove('open');
     });
 
-    if (!wasOpen) {
-      reportCard.classList.remove('open');
-    }
-  }, 300);
+    card.classList.toggle('open');
 }
 
+/* ==============================
+   PDF Export – Single Inspection
+   ============================== */
 
+function exportSingleReportPDF(buttonEl) {
+    const reportCard = buttonEl.closest('.report-card');
+    if (!reportCard) return;
+
+    const wasOpen = reportCard.classList.contains('open');
+
+    reportCard.classList.add('open', 'print-landscape');
+
+    document.querySelectorAll('.report-card').forEach(card => {
+        if (card !== reportCard) card.style.display = 'none';
+    });
+
+    setTimeout(() => {
+        window.print();
+
+        document.querySelectorAll('.report-card').forEach(card => {
+            card.style.display = '';
+            card.classList.remove('print-landscape');
+        });
+
+        if (!wasOpen) reportCard.classList.remove('open');
+    }, 300);
+}
 
 /* ==============================
    Globals
