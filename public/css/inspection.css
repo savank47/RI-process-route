@@ -461,4 +461,20 @@
     background-image: none !important;
     border-radius: 0 !important;
   }
+
+  .report-meta-grid {
+    font-size: 10pt;
+  }
+
 }
+
+.report-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 24px;
+  font-size: 0.85rem;
+  color: #374151;
+  margin-top: 6px;
+}
+
+
