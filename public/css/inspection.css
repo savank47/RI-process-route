@@ -395,6 +395,86 @@
   gap: 1rem;
 }
 
+/* ==============================
+   Inspection Form – Inputs (Soften)
+   ============================== */
+
+.inspection-form input,
+.inspection-form select,
+.inspection-form textarea {
+  border: 1px solid #e5e7eb;          /* lighter border */
+  background: #fafafa;                /* soft canvas */
+  border-radius: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  font-size: 0.9rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.inspection-form input:focus,
+.inspection-form select:focus,
+.inspection-form textarea:focus {
+  outline: none;
+  border-color: #a855f7;              /* purple-500 */
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.12);
+  background: #ffffff;
+}
+
+/* ==============================
+   Dimension Target – Reference Style
+   ============================== */
+
+.dimension-target,
+.inspection-form .target-text {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 0.35rem;
+  padding-left: 0.5rem;
+  border-left: 2px dashed #e5e7eb;
+}
+
+/* ==============================
+   Form Labels – Softer Hierarchy
+   ============================== */
+
+.inspection-form label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #374151;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+/* ==============================
+   Sample Measurement Panel
+   ============================== */
+
+.sample-measurement {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.sample-measurement-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 0.75rem;
+}
+
+/* ==============================
+   Measurement Units
+   ============================== */
+
+.measurement-unit {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-left: 0.35rem;
+}
+
+
+
 /* =========================================================
    PRINT STYLES — INSPECTION REPORTS
    TRUE LANDSCAPE DOCUMENT MODE (STABLE)
