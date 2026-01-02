@@ -345,7 +345,7 @@ function renderReportCard(report, index) {
                         Export PDF
                     </button>
 
-                    <button class="export-btn subtle"
+                    <button class="edit-btn subtle"
                             onclick="event.stopPropagation(); InspectionManager.editInvoice(${index})">
                         Edit Invoice
                     </button>
