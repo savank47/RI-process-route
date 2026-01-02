@@ -229,6 +229,60 @@
   margin-top: 0.5rem;
 }
 
+/* ==============================
+   Dimension Input Grid
+   ============================== */
+
+.dimension-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem 1.25rem;
+}
+
+/* ==============================
+   Measurement Inputs (Compact)
+   ============================== */
+
+.dimension-input {
+  max-width: 200px;
+}
+
+.dimension-input input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  padding-right: 2.25rem;
+}
+
+.dimension-input {
+  position: relative;
+}
+
+.dimension-input .unit {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.75rem;
+  color: #9ca3af;
+  pointer-events: none;
+}
+
+/* ==============================
+   Tolerance Feedback (Mild)
+   ============================== */
+
+.dimension-input.out-of-tolerance input {
+  background: #fff5f5;
+  border-color: #fecaca;
+}
+
+.dimension-input.out-of-tolerance .unit {
+  color: #ef4444;
+}
+
+
+
 
 /* ==============================
    Subtle Delete Action (Premium)
