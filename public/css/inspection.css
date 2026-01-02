@@ -292,7 +292,8 @@
 .report-actions .edit-btn {
   color: #374151; /* gray-700 */
   border-color: #e5e7eb; /* gray-200 */
-  background: #f9fafb; /* gray-50 */
+  /* background: #f9fafb;  */
+  background: transparent;
 }
 
 .report-actions .edit-btn:hover {
