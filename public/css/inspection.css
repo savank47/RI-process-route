@@ -290,7 +290,7 @@
 
 /* Edit Invoice (neutral action) */
 .report-actions .edit-btn {
-  color: #374151; /* gray-700 */
+  /* color: #374151;  */
   border-color: #e5e7eb; /* gray-200 */
   /* background: #f9fafb;  */
   background: transparent;
