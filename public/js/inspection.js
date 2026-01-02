@@ -86,7 +86,6 @@ function getTotalSamplesMeasured(measurements) {
     return sampleSet.size;
 }
 
-
 /* ==============================
    UI TAB ENTRY (MANDATORY)
    ============================== */
@@ -209,7 +208,6 @@ InspectionManager.saveFromTab = async function () {
         return;
     }
 
-    /* 🔽 ADDED: optional invoice fields */
     const invoiceNumber =
         document.getElementById('inspectionInvoiceNumber')?.value.trim() || null;
     const invoiceDate =
@@ -246,8 +244,6 @@ InspectionManager.saveFromTab = async function () {
         inspector,
         sampleSize: this.currentSampleSize,
         measurements,
-
-        /* 🔽 ADDED */
         invoice: {
             number: invoiceNumber,
             date: invoiceDate
@@ -285,7 +281,11 @@ InspectionManager.renderAllReports = async function () {
                 measurements: i.measurements.map(normalizeMeasurement),
                 batchId: batch._id,
                 batchNumber: batch.batchNumber,
-                itemName: batch.itemName
+                itemName: batch.itemName,
+
+                // 🔽 ADDED (SAFE ENRICHMENT)
+                material: batch.material || null,
+                rawMaterialBatchNo: batch.rawMaterialBatchNo || null
             });
         });
     });
@@ -316,6 +316,12 @@ function renderReportCard(report, index) {
 
                     <div class="report-title">
                         ${report.batchNumber} – ${report.itemName}
+                    </div>
+
+                    <!-- 🔽 ADDED -->
+                    <div class="report-meta">
+                        <strong>Material:</strong> ${report.material || '—'} |
+                        <strong>RM Batch:</strong> ${report.rawMaterialBatchNo || '—'}
                     </div>
 
                     <div class="report-meta">${new Date(report.timestamp).toLocaleString()}</div>
@@ -418,7 +424,10 @@ InspectionManager.deleteInspection = async function (index) {
     UI.showToast('Inspection deleted', 'success');
 };
 
-/* 🔽 ADDED: Edit invoice later */
+/* ==============================
+   Edit Invoice
+   ============================== */
+
 InspectionManager.editInvoice = async function (index) {
     const inspection = this.currentRenderedInspections[index];
     if (!inspection) return;
