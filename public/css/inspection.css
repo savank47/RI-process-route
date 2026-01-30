@@ -1,23 +1,14 @@
 /* =========================================================
-   Inspection Reports – Design System (Refined + Premium)
-   NOTE:
-   - No existing rules removed
-   - Only additions or safe extensions
+   Inspection Reports – Total Production System (Full Build)
    ========================================================= */
 
-
-/* ==============================
-   Canvas
-   ============================== */
+/* --- 1. Canvas & Global --- */
 .inspection-canvas {
-  background: #f6f8fb;              /* near-white, low eye strain */
+  background: #f6f8fb;
   padding: 1.5rem;
 }
 
-
-/* ==============================
-   Report Card
-   ============================== */
+/* --- 2. Report Card & Accordion Design --- */
 .report-card {
   background: #ffffff;
   border-radius: 0.75rem;
@@ -25,409 +16,46 @@
   margin-bottom: 2.5rem;
   position: relative;
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-}
-
-/* Status rail */
-.report-card.approved {
-  border-left: 4px solid #22c55e;   /* green-500 */
-}
-
-.report-card.rejected {
-  border-left: 4px solid #ef4444;   /* red-500 */
-}
-
-
-/* ==============================
-   Report Header
-   ============================== */
-.report-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
-.report-title-row {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.report-title {
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: #111827;
-}
-
-.report-meta {
-  font-size: 0.85rem;
-  color: #4b5563;
-}
-
-
-/* ==============================
-   Report Status Badge
-   ============================== */
-.report-status {
-  font-size: 0.7rem;
-  font-weight: 600;
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.375rem;
-  letter-spacing: 0.05em;              /* NEW: industrial feel */
-  text-transform: uppercase;           /* NEW */
-}
-
-.report-status.approved {
-  background: #dcfce7;
-  color: #166534;
-}
-
-.report-status.rejected {
-  background: #fee2e2;
-  color: #991b1b;
-}
-
-
-/* ==============================
-   Report Summary
-   ============================== */
-.report-summary {
-  margin-top: 0.25rem;
-  font-size: 0.8rem;
-  color: #374151;
-  font-weight: 500;
-  padding: 0.25rem 0;
-}
-
-
-/* ==============================
-   Dimension Block
-   ============================== */
-.dimension-block {
-  background: linear-gradient(
-    180deg,
-    #ffffff 0%,
-    #fbfcfe 100%
-  );                                    /* NEW: depth without noise */
-  border: 1px solid #e5e7eb;
-  border-radius: 0.5rem;
-  padding: 1rem;
-  margin-bottom: 2rem;                  /* NEW: more breathing room */
-}
-
-/* Remove extra gap at end */
-.report-card > .dimension-block:last-child {
-  margin-bottom: 3rem;
-}
-
-.dimension-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.25rem;
-}
-
-.dimension-name {
-  font-weight: 700;                     /* NEW: stronger hierarchy */
-  font-size: 0.95rem;                  /* NEW */
-  color: #1f2937;
-}
-
-.dimension-status {
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;              /* NEW */
-  text-transform: uppercase;           /* NEW */
-}
-
-.dimension-status.pass {
-  color: #15803d;
-}
-
-.dimension-status.fail {
-  color: #991b1b;
-}
-
-.dimension-target {
-  font-size: 0.95rem;                   /* REFINED */
-  color: #6b7280;
-  margin-bottom: 0.75rem;              /* NEW */
-  padding-left: 0.5rem;                /* NEW */
-  border-left: 2px dashed #e5e7eb;     /* NEW: reference indicator */
-  font-weight: 700; 
-}
-
-
-/* ==============================
-   Sample Chips
-   ============================== */
-.sample-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;                         /* NEW: slightly more spacing */
-  margin-top: 0.75rem;
-}
-
-.sample-chip {
-  width: 120px;                        /* NEW: consistent footprint */
-  padding: 0.45rem 0.9rem;             /* REFINED */
-  border-radius: 0.75rem;              /* NEW: premium softness */
-  background: #f9fafb;
-  border-left: 4px solid #d1d5db;
-  font-size: 0.75rem;
-  text-align: center;                  /* NEW: instrument-like */
-  color: #111827;
-  box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04); /* NEW */
-  font-variant-numeric: tabular-nums;
-}
-
-.sample-label {
-  font-size: 0.8rem;
-  font-weight: 650;
-  color: #6b7280;
-  margin-bottom: 0.15rem;
-}
-
-.sample-value {
-  font-size: 1rem;                  /* NEW: primary value */
-  font-weight: 500;
-  line-height: 1.1;
-  letter-spacing: 0.01em;
-}
-
-.sample-unit {
-  font-size: 0.7rem;
-  font-weight: 400;
-  opacity: 0.55;
-}
-
-.sample-chip.fail {
-  border-left-color: #ef4444;
-  background: #fff5f5;                 /* NEW: clearer fail */
-  color: #991b1b;
-}
-
-.sample-chip.pass {
-  background: #fafafa;
-  border-left-color: #e5e7eb;
-}
-
-.deviation {
-  font-size: 0.7rem;
-  font-weight: 600;                    /* NEW */
-  color: #dc2626;                      /* NEW */
-  margin-top: 0.1rem;
-}
-
-
-/* ==============================
-   Dimension Summary (OPTIONAL)
-   ============================== */
-.dimension-summary {
-  font-size: 0.7rem;
-  color: #4b5563;
-  margin-top: 0.5rem;
-}
-
-/* ==============================
-   Dimension Input Grid
-   ============================== */
-
-.dimension-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 1rem 1.25rem;
-}
-
-/* ==============================
-   Measurement Inputs (Compact)
-   ============================== */
-
-.dimension-input {
-  max-width: 200px;
-}
-
-.dimension-input input {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-  padding-right: 2.25rem;
-}
-
-.dimension-input {
-  position: relative;
-}
-
-.dimension-input .unit {
-  position: absolute;
-  right: 0.75rem;
-  top: 50%;
-  transform: translateY(-50%);
-  font-size: 0.75rem;
-  color: #9ca3af;
-  pointer-events: none;
-}
-
-/* ==============================
-   Tolerance Feedback (Mild)
-   ============================== */
-
-.dimension-input.out-of-tolerance input {
-  background: #fff5f5;
-  border-color: #fecaca;
-}
-
-.dimension-input.out-of-tolerance .unit {
-  color: #ef4444;
-}
-
-
-
-
-/* ==============================
-   Subtle Delete Action (Premium)
-   ============================== */
-
-.delete-btn.subtle {
-  background: transparent;
-  color: #6b7280; /* gray-500 */
-  padding: 0.3rem 0.5rem;
-  font-size: 0.85rem;
-  border-radius: 0.375rem;
-  line-height: 1;
-  border-left: 1px solid #e5e7eb;
-}
-
-.delete-btn.subtle:hover {
-  background: #fee2e2;      /* soft red hover */
-  color: #991b1b;
-}
-
-.report-header {
-  gap: 1rem;
-}
-
-/* ==============================
-   Report Header Actions
-   ============================== */
-
-.report-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-/* Base button style */
-.report-actions button {
-  appearance: none;
-  background: transparent;
-  border: 1px solid transparent;
-  padding: 0.35rem 0.75rem;
-  font-size: 0.75rem;
-  font-weight: 500;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  line-height: 1.2;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-}
-
-/* Export PDF (primary but subtle) */
-.report-actions .export-btn {
-  color: #2563eb; /* blue-600 */
-  border-color: #dbeafe; /* blue-100 */
-  background: #eff6ff; /* blue-50 */
-}
-
-.report-actions .export-btn:hover {
-  background: #dbeafe;
-}
-
-/* Edit Invoice (ghost / utility action) */
-.report-actions .edit-btn {
-  color: #374151;              /* gray-700 */
-  background: transparent;
-  border-color: #828388;
-  padding-left: 0.6rem;
-  padding-right: 0.6rem;
-}
-
-/* Soft hover affordance */
-.report-actions .edit-btn:hover {
-  background: rgba(0, 0, 0, 0.035); /* very subtle neutral */
-}
-
-/* Optional: focus-visible for keyboard users */
-.report-actions .edit-btn:focus-visible {
-  outline: none;
-  background: rgba(0, 0, 0, 0.06);
-}
-
-/* .report-actions .edit-btn:hover {
-  background: #f3f4f6;
-} */
-
-/* Delete (danger, but restrained) */
-.report-actions .delete-btn {
-  color: #b91c1c; /* red-700 */
-  border-color: #fee2e2; /* red-100 */
-  background: #fffafa; /* soft red */
-}
-
-.report-actions .delete-btn:hover {
-  background: #fee2e2;
-}
-
-/* ------------------------------
-   Print: hide actions completely
-   ------------------------------ */
-@media print {
-  .report-actions {
-    display: none !important;
-  }
-}
-
-
-
-/* ==============================
-   Accordion Start
-   ============================== */
-/* ==============================
-   Accordion Behavior – Inspection Reports
-   ============================== */
-
-.report-card {
-  transition: box-shadow 0.25s ease;
+  border-left: 4px solid #e5e7eb;
+  transition: box-shadow 0.25s ease, transform 0.2s ease;
 }
 
 .report-card:hover {
   box-shadow: 0 12px 32px rgba(0,0,0,0.08);
+  transform: translateY(-2px);
 }
 
-/* Accordion body (collapsed by default) */
+.report-card.approved { border-left: 4px solid #22c55e; }
+.report-card.rejected { border-left: 4px solid #ef4444; }
+
+/* Accordion Body */
 .report-body {
   max-height: 0;
   overflow: hidden;
-  transition: max-height 0.35s ease;
+  transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Expanded state */
 .report-card.open .report-body {
-  max-height: 3000px; /* safe large value */
+  max-height: 5000px;
+  padding-top: 1.25rem;
+  padding-bottom: 1rem;
 }
 
-/* Clickable header */
+/* --- 3. Header & Typography --- */
 .report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   cursor: pointer;
 }
 
-/* Chevron indicator */
 .report-header::after {
   content: "›";
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   line-height: 1;
-  opacity: 0.5;
+  opacity: 0.4;
   transform: rotate(90deg);
-  transition: transform 0.25s ease;
+  transition: transform 0.3s ease;
   margin-left: 1rem;
 }
 
@@ -435,291 +63,226 @@
   transform: rotate(-90deg);
 }
 
-/* ==============================
-   Accordion End
-   ============================== */
-
-
-/* ==============================
-   Export Report
-   ============================== */
-.report-actions {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-/* ==============================
-   Inspection Form – Inputs (Soften)
-   ============================== */
-
-.inspection-form input,
-.inspection-form select,
-.inspection-form textarea {
-  border: 1px solid #e5e7eb;          /* lighter border */
-  background: #fafafa;                /* soft canvas */
-  border-radius: 0.5rem;
-  padding: 0.6rem 0.75rem;
-  font-size: 0.9rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.inspection-form input:focus,
-.inspection-form select:focus,
-.inspection-form textarea:focus {
-  outline: none;
-  border-color: #a855f7;              /* purple-500 */
-  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.12);
-  background: #ffffff;
-}
-
-/* ==============================
-   Dimension Target – Reference Style
-   ============================== */
-
-.dimension-target,
-.inspection-form .target-text {
+.company-name {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #4b5563;
   font-size: 0.75rem;
-  color: #6b7280;
-  margin-top: 0.35rem;
-  padding-left: 0.5rem;
-  border-left: 2px dashed #e5e7eb;
-}
-
-/* ==============================
-   Form Labels – Softer Hierarchy
-   ============================== */
-
-.inspection-form label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #374151;
-  letter-spacing: 0.02em;
+  text-transform: uppercase;
   margin-bottom: 0.25rem;
 }
 
-/* ==============================
-   Sample Measurement Panel
-   ============================== */
-
-.sample-measurement {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  margin-bottom: 1.5rem;
-}
-
-.sample-measurement-title {
-  font-size: 0.85rem;
-  font-weight: 600;
+.report-title {
+  font-weight: 700;
+  font-size: 1.15rem;
   color: #111827;
-  margin-bottom: 0.75rem;
+  margin: 0.15rem 0;
 }
 
-/* ==============================
-   Measurement Units
-   ============================== */
+.report-meta {
+  font-size: 0.85rem;
+  color: #6b7280;
+  line-height: 1.6;
+}
 
-.measurement-unit {
-  font-size: 0.75rem;
+.report-summary {
+  margin-top: 0.75rem;
+  font-size: 0.88rem;
+  color: #111827;
+  font-weight: 650;
+  background: #f9fafb;
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 2rem;
+  border: 1px solid #f3f4f6;
+}
+
+/* --- 4. Dimension Blocks --- */
+.dimension-block {
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
+  border: 1px solid #e5e7eb;
+  border-radius: 0.6rem;
+  padding: 1.15rem;
+  margin-bottom: 1.25rem;
+  position: relative;
+}
+
+.dimension-block.out {
+  border-left: 3px solid #ef4444;
+  background: #fffcfc;
+}
+
+.dimension-name {
+  font-weight: 700;
+  font-size: 1rem;
+  color: #1f2937;
+}
+
+.dimension-target {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin: 0.6rem 0;
+  padding-left: 0.6rem;
+  border-left: 2px dashed #d1d5db;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- 5. Sample Chips (Premium Instrument Look) --- */
+.sample-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  margin-top: 1rem;
+}
+
+.sample-chip {
+  width: 140px;
+  padding: 0.6rem;
+  border-radius: 0.6rem;
+  background: #fcfcfd;
+  border: 1px solid #e5e7eb;
+  border-left: 5px solid #d1d5db;
+  text-align: center;
+  transition: all 0.2s ease;
+  font-variant-numeric: tabular-nums;
+}
+
+.sample-label {
+  font-size: 0.65rem;
+  font-weight: 700;
   color: #9ca3af;
-  margin-left: 0.35rem;
+  text-transform: uppercase;
+  margin-bottom: 3px;
 }
 
+.sample-value {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: #111827;
+}
 
+.sample-chip.fail {
+  border-left-color: #ef4444;
+  background: #fff5f5;
+  color: #991b1b;
+  border-color: #fecaca;
+}
+
+.deviation {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #dc2626;
+  margin-top: 3px;
+}
+
+/* --- 6. Action Buttons --- */
+.report-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.report-actions button {
+  padding: 0.45rem 1rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+}
+
+.export-btn { background: #eff6ff; color: #2563eb; border-color: #dbeafe !important; }
+.export-btn:hover { background: #dbeafe; transform: scale(1.02); }
+
+.edit-btn { background: #ffffff; color: #374151; }
+.edit-btn:hover { background: #f9fafb; }
+
+.delete-btn { background: #fffafa; color: #b91c1c; border-color: #fee2e2 !important; }
+.delete-btn:hover { background: #fee2e2; }
+
+/* --- 7. Inspection Form Inputs --- */
+.inspection-form input, 
+.inspection-form select, 
+.inspection-form textarea {
+  border: 1px solid #d1d5db;
+  background: #fafafa;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  font-size: 0.95rem;
+  width: 100%;
+  font-weight: 500;
+}
+
+.inspection-form input:focus {
+  outline: none;
+  border-color: #a855f7;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.15);
+  background: #fff;
+}
 
 /* =========================================================
-   PRINT STYLES — INSPECTION REPORTS
-   TRUE LANDSCAPE DOCUMENT MODE (STABLE)
+   8. THE PRINT SYSTEM (NATIVE PDF OPTIMIZATION)
    ========================================================= */
 @media print {
-
-  /* ---------------------------------
-     Page setup
-     --------------------------------- */
   @page {
     size: A4 landscape;
-    margin: 12mm;
+    margin: 8mm;
   }
 
-  /* ---------------------------------
-     Reset document canvas
-     --------------------------------- */
-  html,
-  body {
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    font-size: 11pt;
-    color: #000000;
-    height: auto !important;
-    min-height: auto !important;
-  }
-
-  /* ---------------------------------
-     VISIBILITY-BASED HIDING (SAFE)
-     --------------------------------- */
-  body * {
-    visibility: hidden !important;
-  }
-
-  /* ---------------------------------
-     Show ONLY inspection content
-     --------------------------------- */
-  #content-inspections,
-  #content-inspections * {
-    visibility: visible !important;
-  }
-
-  /* ---------------------------------
-     Hard remove known non-report sections
-     --------------------------------- */
-  header,
-  footer,
-  nav,
+  /* Force display:none on all web elements to collapse space */
+  header, footer, nav, 
+  .no-print, 
+  .report-actions, 
   .create-inspection-form,
   .inspection-reports-header,
-  .export-btn,
-  .delete-btn,
-  .no-print {
+  #apiStatus, #apiStatusText {
     display: none !important;
   }
 
-  /* ---------------------------------
-     Break out of Tailwind layout traps
-     --------------------------------- */
-  #content-inspections {
-    position: static !important;
-    width: 100% !important;
-    max-width: none !important;
+  /* Reset layout for full-page PDF */
+  html, body {
+    background: #ffffff !important;
     margin: 0 !important;
     padding: 0 !important;
-  }
-
-  .container,
-  .container-sm,
-  .container-md,
-  .container-lg,
-  .container-xl,
-  .container-xxl,
-  .min-h-screen,
-  .min-h-full,
-  .h-screen,
-  .h-full {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    height: auto !important;
-    min-height: auto !important;
-  }
-
-  /* ---------------------------------
-     Report cards (document sections)
-     --------------------------------- */
-  .report-card {
-    width: 100% !important;
-    margin-bottom: 10mm;
-    padding: 8mm;
-    border: 1px solid #d1d5db;
-    box-shadow: none !important;
-
-    /* Prevent report splitting */
-    page-break-inside: avoid;
-    break-inside: avoid;
-  }
-
-  /* ---------------------------------
-     Dimension blocks (CRITICAL FIX)
-     --------------------------------- */
-  .dimension-block {
-    page-break-inside: avoid;
-    break-inside: avoid;
-    margin-bottom: 6mm;
-  }
-
-  .dimension-header {
-    page-break-after: avoid;
-    break-after: avoid;
-  }
-
-  /* ---------------------------------
-     Landscape width usage
-     --------------------------------- */
-  .sample-list {
     width: 100%;
-    gap: 12px;
   }
 
-  /* ---------------------------------
-     Remove web-only visuals
-     --------------------------------- */
-  * {
+  /* Hide other reports if we are in 'Print-Specific' mode */
+  body.print-mode-active #content-inspections .report-card:not(.print-this-card) {
+    display: none !important;
+  }
+
+  /* Position the printing report at the absolute top-left */
+  .print-this-card {
+    visibility: visible !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    border: 1px solid #ccc !important;
     box-shadow: none !important;
-    background-image: none !important;
-    border-radius: 0 !important;
+    padding: 5mm !important;
   }
 
-  .report-meta-grid {
-    font-size: 10pt;
+  /* Ensure all inspection data is visible even if collapsed in UI */
+  .report-body {
+    max-height: none !important;
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
   }
 
-}
-
-.report-meta-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 4px 24px;
-  font-size: 0.85rem;
-  color: #374151;
-  margin-top: 6px;
-}
-
-
-/* Special override for html2pdf rendering */
-.html2pdf__container .report-card {
-    border: 1px solid #d1d5db !important;
-    box-shadow: none !important;
-    margin: 0 !important;
-    padding: 15px !important;
-}
-
-.html2pdf__container .report-actions {
-    display: none !important; /* Hide buttons inside the PDF */
-}
-
-/* Ensure sample chips don't break across pages */
-.html2pdf__container .sample-chip {
+  .dimension-block, .report-header, .sample-chip {
+    page-break-inside: avoid;
     break-inside: avoid;
-    display: inline-block !important;
-    margin-bottom: 5px;
-}
+  }
 
-@media print {
-    /* Hide everything by default */
-    body.print-mode-active * {
-        visibility: hidden !important;
-    }
+  .report-header::after { display: none !important; }
 
-    /* Show only the targeted card and its children */
-    body.print-mode-active .print-this-card,
-    body.print-mode-active .print-this-card * {
-        visibility: visible !important;
-    }
-
-    /* Position the card at the very top of the printed page */
-    body.print-mode-active .print-this-card {
-        position: absolute !important;
-        left: 0 !important;
-        top: 0 !important;
-        width: 100% !important;
-        border: 1px solid #000 !important; /* Professional border for PDF */
-        box-shadow: none !important;
-    }
-
-    /* Hide the buttons inside the PDF */
-    body.print-mode-active .report-actions {
-        display: none !important;
-    }
+  /* PDF Contrast Optimizations */
+  .company-name { font-size: 10pt; color: #000; }
+  .report-title { font-size: 18pt; color: #000; margin-bottom: 5mm; }
+  .sample-chip { border: 1px solid #999 !important; background: #fff !important; }
 }
