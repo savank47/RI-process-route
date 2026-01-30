@@ -95,15 +95,14 @@ class DimensionManager {
     }
 
     static getDimensions() {
-        // Return a clean array of plain objects (no undefined values)
         return STATE.itemDimensions.map(d => ({
             name: d.name || '',
-            minValue: parseFloat(d.minValue) || 0,
-            maxValue: parseFloat(d.maxValue) || 0,
+            // FIX: Explicitly check for empty string so 0 remains 0
+            minValue: d.minValue !== '' ? parseFloat(d.minValue) : 0,
+            maxValue: d.maxValue !== '' ? parseFloat(d.maxValue) : 0,
             unit: d.unit || 'mm'
-        })).filter(d => d.name.trim() !== ''); // Remove empty dimensions
+        })).filter(d => d.name.trim() !== '');
     }
-}
 
 // Make globally accessible
 window.DimensionManager = DimensionManager;
