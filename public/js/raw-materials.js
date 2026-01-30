@@ -64,35 +64,28 @@ class RawMaterialManager {
         }
     }
 
-    static async render() {
-        const list = document.getElementById('rmList');
-        // Ensure this endpoint exists in your Vercel/Node backend
-        const materials = await api.call('/raw-materials', 'GET');
-        
-        if (!materials || materials.length === 0) {
-            list.innerHTML = '<p class="text-center py-8 text-gray-500">No raw materials added to master yet.</p>';
-            return;
-        }
+ static async render() {
+    const list = document.getElementById('rmList');
+    const materials = await api.call('/raw-materials', 'GET');
     
-        list.innerHTML = materials.map(rm => {
-            // Ensure values are numbers before formatting
-            const netVal = parseFloat(rm.netWeight) || 0;
-            const grossVal = parseFloat(rm.grossWeight) || 0;
-    
-            return `
-                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 flex justify-between items-center animate-slide-in">
-                    <div>
-                        <h3 class="font-bold text-gray-800">${rm.name}</h3>
-                        <p class="text-sm text-gray-600">${rm.dimension} | Supplied by: ${rm.dealer || '—'}</p>
-                    </div>
-                    <div class="text-right">
-                        <p class="text-xs text-gray-500">Net: ${netVal.toFixed(3)} kg (+${rm.lossPercent}%)</p>
-                        <p class="text-sm font-bold text-indigo-600">Gross: ${grossVal.toFixed(3)} kg</p>
-                    </div>
-                </div>
-            `;
-        }).join('');
+    if (!materials || materials.length === 0) {
+        list.innerHTML = '<p class="text-gray-400 italic text-sm">No raw materials added to master yet.</p>';
+        return;
     }
+
+    list.innerHTML = materials.map(rm => `
+        <div class="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 flex justify-between items-center transition-all">
+            <div>
+                <h3 class="font-bold text-gray-800">${rm.name}</h3>
+                <p class="text-xs text-gray-500">${rm.dimension} | ${rm.dealer || 'Unknown Dealer'}</p>
+            </div>
+            <div class="text-right">
+                <p class="text-xs text-gray-400">Net: ${(parseFloat(rm.netWeight) || 0).toFixed(3)} kg</p>
+                <p class="text-sm font-bold text-indigo-600">${(parseFloat(rm.grossWeight) || 0).toFixed(3)} kg</p>
+            </div>
+        </div>
+    `).join('');
+}
 
     static clearForm() {
         document.getElementById('rmName').value = '';
