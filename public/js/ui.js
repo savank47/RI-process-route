@@ -212,12 +212,6 @@ class UI {
     }
 }
 
-// Update main.js DomContentLoaded listener:
-document.addEventListener('DOMContentLoaded', async () => {
-    // ... existing init code ...
-    
-    UI.startHeartbeat(); // Start the background refresh
-});
 
 // Make functions globally accessible
 window.showTab = (tab) => UI.showTab(tab);
