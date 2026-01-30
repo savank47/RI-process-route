@@ -1,13 +1,38 @@
+class DealerManager {
+    static async save() {
+        const name = document.getElementById('dealerName').value.trim();
+        if(!name) return;
+        
+        await api.call('/dealers', 'POST', { name });
+        document.getElementById('dealerName').value = '';
+        this.render();
+        RawMaterialManager.updateDealerDropdown(); // Refresh the RM form dropdown
+    }
+
+    static async render() {
+        const dealers = await api.call('/dealers', 'GET');
+        document.getElementById('dealerList').innerHTML = dealers.map(d => 
+            `<span class="bg-gray-100 px-3 py-1 rounded-full text-sm border border-gray-200">${d.name}</span>`
+        ).join('');
+    }
+}
+
 class RawMaterialManager {
     static calculateGrossWeight() {
         const net = parseFloat(document.getElementById('rmNetWeight').value) || 0;
         const lossPercent = parseFloat(document.getElementById('rmLossPercent').value) || 0;
+ 
+        const gross = net * (1 + (lossPercent / 100));
         
-        // Calculation: Gross = Net + (Net * Loss%)
-        const gross = net + (net * (lossPercent / 100));
-        
-        document.getElementById('rmGrossWeightDisplay').textContent = gross.toFixed(2);
+        document.getElementById('rmGrossWeightDisplay').textContent = gross.toFixed(3);
         return gross;
+    }
+
+    static async updateDealerDropdown() {
+        const select = document.getElementById('rmDealerSelect');
+        const dealers = await api.call('/dealers', 'GET');
+        select.innerHTML = '<option value="">-- Select Dealer --</option>' + 
+            dealers.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
     }
 
     static async save() {
@@ -37,20 +62,32 @@ class RawMaterialManager {
 
     static async render() {
         const list = document.getElementById('rmList');
+        // Ensure this endpoint exists in your Vercel/Node backend
         const materials = await api.call('/raw-materials', 'GET');
         
-        list.innerHTML = materials.map(rm => `
-            <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 flex justify-between items-center">
-                <div>
-                    <h3 class="font-bold text-gray-800">${rm.name}</h3>
-                    <p class="text-sm text-gray-600">${rm.dimension} | Supplied by: ${rm.dealer}</p>
+        if (!materials || materials.length === 0) {
+            list.innerHTML = '<p class="text-center py-8 text-gray-500">No raw materials added to master yet.</p>';
+            return;
+        }
+    
+        list.innerHTML = materials.map(rm => {
+            // Ensure values are numbers before formatting
+            const netVal = parseFloat(rm.netWeight) || 0;
+            const grossVal = parseFloat(rm.grossWeight) || 0;
+    
+            return `
+                <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 flex justify-between items-center animate-slide-in">
+                    <div>
+                        <h3 class="font-bold text-gray-800">${rm.name}</h3>
+                        <p class="text-sm text-gray-600">${rm.dimension} | Supplied by: ${rm.dealer || '—'}</p>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-xs text-gray-500">Net: ${netVal.toFixed(3)} kg (+${rm.lossPercent}%)</p>
+                        <p class="text-sm font-bold text-indigo-600">Gross: ${grossVal.toFixed(3)} kg</p>
+                    </div>
                 </div>
-                <div class="text-right">
-                    <p class="text-xs text-gray-500">Net: ${rm.netWeight}g (+${rm.lossPercent}%)</p>
-                    <p class="text-sm font-bold text-indigo-600">Gross: ${rm.grossWeight}g</p>
-                </div>
-            </div>
-        `).join('');
+            `;
+        }).join('');
     }
 
     static clearForm() {
@@ -61,5 +98,6 @@ class RawMaterialManager {
         document.getElementById('rmGrossWeightDisplay').textContent = '0';
     }
 }
+
 
 window.RawMaterialManager = RawMaterialManager;
