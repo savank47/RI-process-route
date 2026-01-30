@@ -677,3 +677,22 @@
 }
 
 
+/* Special override for html2pdf rendering */
+.html2pdf__container .report-card {
+    border: 1px solid #d1d5db !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 15px !important;
+}
+
+.html2pdf__container .report-actions {
+    display: none !important; /* Hide buttons inside the PDF */
+}
+
+/* Ensure sample chips don't break across pages */
+.html2pdf__container .sample-chip {
+    break-inside: avoid;
+    display: inline-block !important;
+    margin-bottom: 5px;
+}
+
