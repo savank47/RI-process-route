@@ -104,4 +104,5 @@ class RawMaterialManager {
 }
 
 
-window.RawMaterialManager = RawMaterialManager;
+window.DealerManager = DealerManager;
+window.RawMaterialManager = RawMaterialManager;;
