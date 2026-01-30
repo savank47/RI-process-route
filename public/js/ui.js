@@ -224,3 +224,5 @@ window.showTab = (tab) => UI.showTab(tab);
 window.selectColor = (color) => UI.selectColor(color);
 window.exportData = () => UI.exportData();
 window.importData = (e) => UI.importData(e);
+
+window.UI = UI;
