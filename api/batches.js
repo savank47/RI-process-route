@@ -84,34 +84,40 @@ module.exports = async (req, res) => {
     else if (req.method === 'PUT') {
       const { id, processIndex, action } = req.query;
       
-      // Check if this is a process update
       if (processIndex !== undefined && action === 'updateProcess') {
-        console.log('Updating process:', id, processIndex);
-        const updates = await parseBody(req); // Changed from JSON.parse(req.body)
-        
-        const batch = await collection.findOne({ _id: new ObjectId(id) });
-        if (!batch) {
-          return res.status(404).json({ error: 'Batch not found' });
-        }
-
+        const updates = await parseBody(req);
         const idx = parseInt(processIndex);
-        batch.processes[idx] = { 
-          ...batch.processes[idx], 
-          ...updates 
-        };
-
-        const allCompleted = batch.processes.every(p => p.status === 'completed');
-        batch.completedAt = allCompleted ? new Date() : null;
-
+    
+        // Atomic update using the positional index
+        // This is faster and prevents "Race Conditions" on the shop floor
+        const updateQuery = { [`processes.${idx}`]: { ...updates } };
+        
+        // Perform the update
         await collection.updateOne(
           { _id: new ObjectId(id) },
-          { $set: { processes: batch.processes, completedAt: batch.completedAt } }
+          { $set: updateQuery }
         );
+    
+        // Check if the whole batch is now complete
+        const updatedBatch = await collection.findOne({ _id: new ObjectId(id) });
+        const allCompleted = updatedBatch.processes.every(p => p.status === 'completed');
         
-        res.status(200).json(batch);
+        if (allCompleted && !updatedBatch.completedAt) {
+          await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { completedAt: new Date() } }
+          );
+        } else if (!allCompleted && updatedBatch.completedAt) {
+          await collection.updateOne(
+            { _id: new ObjectId(id) },
+            { $set: { completedAt: null } }
+          );
+        }
+        
+        res.status(200).json(updatedBatch);
       } else {
-        // Regular batch update
-        const updates = await parseBody(req); // Changed from JSON.parse(req.body)
+        // Regular batch update for non-process fields
+        const updates = await parseBody(req);
         await collection.updateOne(
           { _id: new ObjectId(id) },
           { $set: updates }
