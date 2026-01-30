@@ -53,7 +53,7 @@ class UI {
 
     // Tab navigation
     static showTab(tabName) {
-        const tabs = ['processes', 'items', 'batches', 'tracking', 'inspections', 'dashboard'];
+        const tabs = ['processes', 'items', 'batches', 'tracking', 'inspections', 'dashboard', 'raw-materials'];
         tabs.forEach(tab => {
             document.getElementById(`content-${tab}`).classList.add('hidden');
             document.getElementById(`tab-${tab}`).classList.remove('tab-active');
