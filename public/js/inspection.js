@@ -483,42 +483,28 @@ function toggleInspectionReport(headerEl) {
    PDF Export – Single Inspection
    ============================== */
 
-async function exportSingleReportPDF(buttonEl) {
-    const reportCard = buttonEl.closest('.report-card');
-    if (!reportCard) return;
-
-    // Show a loading state on the button
-    const originalText = buttonEl.innerHTML;
-    buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
-    buttonEl.disabled = true;
-
-    try {
-        // Ensure the card is expanded for the capture
-        const wasOpen = reportCard.classList.contains('open');
-        reportCard.classList.add('open');
-
-        // PDF Configuration optimized for Industrial Reports
-        const opt = {
-          margin: [10, 10, 10, 10],
-          filename: `Inspection_${reportCard.querySelector('.report-title').innerText.replace(/\s+/g, '_')}.pdf`,
-          image: { type: 'jpeg', quality: 0.98 },
-          html2canvas: { 
-              scale: 2, 
-              useCORS: true,
-              // ADD THIS HOOK:
-              onclone: (clonedDoc) => {
-                  const elements = clonedDoc.querySelectorAll('*');
-                  elements.forEach(el => {
-                      const style = window.getComputedStyle(el);
-                      // Force convert oklch to rgb for the PDF engine
-                      if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'rgb(243, 244, 246)'; 
-                      if (style.color.includes('oklch')) el.style.color = 'rgb(31, 41, 55)';
-                      if (style.borderColor.includes('oklch')) el.style.borderColor = 'rgb(209, 213, 219)';
-                  });
-              }
-          },
-          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
-      };
+   async function exportSingleReportPDF(buttonEl) {
+       const reportCard = buttonEl.closest('.report-card');
+       if (!reportCard) return;
+   
+       // 1. Identify what we want to print
+       const wasOpen = reportCard.classList.contains('open');
+       
+       // 2. Apply a temporary 'printing' class to the body
+       document.body.classList.add('print-mode-active');
+       reportCard.classList.add('print-this-card');
+       reportCard.classList.add('open');
+   
+       // 3. Trigger native print (Browser will handle OKLCH perfectly)
+       window.print();
+   
+       // 4. Cleanup after print dialog closes
+       setTimeout(() => {
+           document.body.classList.remove('print-mode-active');
+           reportCard.classList.remove('print-this-card');
+           if (!wasOpen) reportCard.classList.remove('open');
+       }, 500);
+   }
 
         // Generate the PDF
         await html2pdf().set(opt).from(reportCard).save();
