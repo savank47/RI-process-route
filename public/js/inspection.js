@@ -499,17 +499,26 @@ async function exportSingleReportPDF(buttonEl) {
 
         // PDF Configuration optimized for Industrial Reports
         const opt = {
-            margin:       [10, 10, 10, 10], // top, left, but, right in mm
-            filename:     `Inspection_${reportCard.querySelector('.report-title').innerText.replace(/\s+/g, '_')}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { 
-                scale: 2, 
-                useCORS: true, 
-                letterRendering: true,
-                logging: false 
-            },
-            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
-        };
+          margin: [10, 10, 10, 10],
+          filename: `Inspection_${reportCard.querySelector('.report-title').innerText.replace(/\s+/g, '_')}.pdf`,
+          image: { type: 'jpeg', quality: 0.98 },
+          html2canvas: { 
+              scale: 2, 
+              useCORS: true,
+              // ADD THIS HOOK:
+              onclone: (clonedDoc) => {
+                  const elements = clonedDoc.querySelectorAll('*');
+                  elements.forEach(el => {
+                      const style = window.getComputedStyle(el);
+                      // Force convert oklch to rgb for the PDF engine
+                      if (style.backgroundColor.includes('oklch')) el.style.backgroundColor = 'rgb(243, 244, 246)'; 
+                      if (style.color.includes('oklch')) el.style.color = 'rgb(31, 41, 55)';
+                      if (style.borderColor.includes('oklch')) el.style.borderColor = 'rgb(209, 213, 219)';
+                  });
+              }
+          },
+          jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+      };
 
         // Generate the PDF
         await html2pdf().set(opt).from(reportCard).save();
