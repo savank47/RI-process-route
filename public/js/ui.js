@@ -189,6 +189,24 @@ class UI {
     }
 }
 
+static startHeartbeat() {
+    // Refresh stats every 60 seconds
+    setInterval(async () => {
+        const statusText = document.getElementById('apiStatusText');
+        if (statusText && statusText.textContent === 'Connected') {
+            await UI.updateStats();
+            console.log('📊 Stats auto-refreshed');
+        }
+    }, 60000);
+}
+
+// Update main.js DomContentLoaded listener:
+document.addEventListener('DOMContentLoaded', async () => {
+    // ... existing init code ...
+    
+    UI.startHeartbeat(); // Start the background refresh
+});
+
 // Make functions globally accessible
 window.showTab = (tab) => UI.showTab(tab);
 window.selectColor = (color) => UI.selectColor(color);
