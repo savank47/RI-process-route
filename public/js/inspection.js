@@ -483,30 +483,49 @@ function toggleInspectionReport(headerEl) {
    PDF Export – Single Inspection
    ============================== */
 
-function exportSingleReportPDF(buttonEl) {
+async function exportSingleReportPDF(buttonEl) {
     const reportCard = buttonEl.closest('.report-card');
     if (!reportCard) return;
 
-    const wasOpen = reportCard.classList.contains('open');
+    // Show a loading state on the button
+    const originalText = buttonEl.innerHTML;
+    buttonEl.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+    buttonEl.disabled = true;
 
-    reportCard.classList.add('open', 'print-landscape');
+    try {
+        // Ensure the card is expanded for the capture
+        const wasOpen = reportCard.classList.contains('open');
+        reportCard.classList.add('open');
 
-    document.querySelectorAll('.report-card').forEach(card => {
-        if (card !== reportCard) card.style.display = 'none';
-    });
+        // PDF Configuration optimized for Industrial Reports
+        const opt = {
+            margin:       [10, 10, 10, 10], // top, left, but, right in mm
+            filename:     `Inspection_${reportCard.querySelector('.report-title').innerText.replace(/\s+/g, '_')}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                letterRendering: true,
+                logging: false 
+            },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+        };
 
-    setTimeout(() => {
-        window.print();
-
-        document.querySelectorAll('.report-card').forEach(card => {
-            card.style.display = '';
-            card.classList.remove('print-landscape');
-        });
-
+        // Generate the PDF
+        await html2pdf().set(opt).from(reportCard).save();
+        
+        // Restore state
         if (!wasOpen) reportCard.classList.remove('open');
-    }, 300);
-}
+        UI.showToast('PDF Generated Successfully');
 
+    } catch (error) {
+        console.error('PDF Generation Error:', error);
+        UI.showToast('PDF Export failed. Try browser print.', 'error');
+    } finally {
+        buttonEl.innerHTML = originalText;
+        buttonEl.disabled = false;
+    }
+}
 /* ==============================
    Globals
    ============================== */
