@@ -98,8 +98,8 @@ class DimensionManager {
         return STATE.itemDimensions.map(d => ({
             name: d.name || '',
             // FIX: Explicitly check for empty string so 0 remains 0
-            minValue: d.minValue !== '' ? parseFloat(d.minValue) : 0,
-            maxValue: d.maxValue !== '' ? parseFloat(d.maxValue) : 0,
+            minValue: (d.minValue !== '' && d.minValue !== undefined) ? parseFloat(d.minValue) : 0,
+            maxValue: (d.maxValue !== '' && d.maxValue !== undefined) ? parseFloat(d.maxValue) : 0,
             unit: d.unit || 'mm'
         })).filter(d => d.name.trim() !== '');
     }
