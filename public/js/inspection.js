@@ -526,6 +526,22 @@ async function exportSingleReportPDF(buttonEl) {
         buttonEl.disabled = false;
     }
 }
+
+InspectionManager.filterByRMBatch = function(searchTerm) {
+    const term = searchTerm.toLowerCase().trim();
+    const container = document.getElementById('inspectionReportsList');
+    
+    // Use the cached reports from the last render
+    const filtered = this.currentRenderedInspections.filter(report => {
+        const rmBatch = (report.rawMaterialBatchNo || '').toLowerCase();
+        const batchNo = (report.batchNumber || '').toLowerCase();
+        return rmBatch.includes(term) || batchNo.includes(term);
+    });
+
+    container.innerHTML = filtered.length
+        ? filtered.map(renderReportCard).join('')
+        : `<p class="text-center py-8 text-gray-500">No reports match "${searchTerm}"</p>`;
+};
 /* ==============================
    Globals
    ============================== */
