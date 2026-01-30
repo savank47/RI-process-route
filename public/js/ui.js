@@ -91,6 +91,12 @@ class UI {
             } else if (tabName === 'dashboard') {
                 if (window.DashboardManager) DashboardManager.render();
             }
+              else if (tabName === 'raw-materials') {
+                if (window.RawMaterialManager && window.DealerManager) {
+                    RawMaterialManager.render();
+                    DealerManager.render();
+                }
+            }
     }
 
     // API Status Checker
