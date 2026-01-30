@@ -187,17 +187,18 @@ class UI {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
     }
-}
 
-static startHeartbeat() {
-    // Refresh stats every 60 seconds
-    setInterval(async () => {
-        const statusText = document.getElementById('apiStatusText');
-        if (statusText && statusText.textContent === 'Connected') {
-            await UI.updateStats();
-            console.log('📊 Stats auto-refreshed');
-        }
-    }, 60000);
+
+    static startHeartbeat() {
+        // Refresh stats every 60 seconds
+        setInterval(async () => {
+            const statusText = document.getElementById('apiStatusText');
+            if (statusText && statusText.textContent === 'Connected') {
+                await UI.updateStats();
+                console.log('📊 Stats auto-refreshed');
+            }
+        }, 60000);
+    }
 }
 
 // Update main.js DomContentLoaded listener:
