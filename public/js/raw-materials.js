@@ -10,10 +10,14 @@ class DealerManager {
     }
 
     static async render() {
+        const list = document.getElementById('dealerList');
         const dealers = await api.call('/dealers', 'GET');
         document.getElementById('dealerList').innerHTML = dealers.map(d => 
-            `<span class="bg-gray-100 px-3 py-1 rounded-full text-sm border border-gray-200">${d.name}</span>`
-        ).join('');
+            `
+            <span class="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold border border-blue-200">
+                ${d.name}
+            </span>
+        `).join('');
     }
 }
 
