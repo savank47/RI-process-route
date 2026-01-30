@@ -723,3 +723,53 @@
         display: none !important;
     }
 }
+
+/* =========================================================
+   ZERO-IMPACT PRINT BRIDGE (ADD TO END OF FILE)
+   Ensures existing styles fill the A4 page during export.
+   ========================================================= */
+@media print {
+    /* 1. Force Browser to recognize the landscape document */
+    @page {
+        size: A4 landscape;
+        margin: 10mm;
+    }
+
+    /* 2. RECOVERY: Reset the "hidden" space from the UI */
+    /* We use 'display: none' here so the browser doesn't leave gaps */
+    header, footer, nav, .no-print, .report-actions, 
+    .create-inspection-form, .inspection-reports-header {
+        display: none !important;
+    }
+
+    /* 3. ALIGNMENT: Force the card to occupy the full page width */
+    .print-this-card {
+        position: absolute !important;
+        top: 0 !important;
+        left: 0 !important;
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        box-shadow: none !important;
+        border: 1px solid #eee !important;
+    }
+
+    /* 4. EXPANSION: Force the accordion open for the print engine */
+    .report-body {
+        max-height: none !important;
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    /* 5. CLEANUP: Remove the interactive chevron in PDF */
+    .report-header::after {
+        display: none !important;
+    }
+
+    /* 6. Avoid breaking a dimension block across two pages */
+    .dimension-block {
+        page-break-inside: avoid;
+        break-inside: avoid;
+    }
+}
