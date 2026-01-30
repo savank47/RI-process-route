@@ -478,55 +478,38 @@ function toggleInspectionReport(headerEl) {
 
     card.classList.toggle('open');
 }
-
 /* ==============================
-   PDF Export – Single Inspection
+   PDF Export – Single Inspection (FIXED)
    ============================== */
+async function exportSingleReportPDF(buttonEl) {
+    const reportCard = buttonEl.closest('.report-card');
+    if (!reportCard) return;
 
-   async function exportSingleReportPDF(buttonEl) {
-       const reportCard = buttonEl.closest('.report-card');
-       if (!reportCard) return;
-   
-       // 1. Identify what we want to print
-       const wasOpen = reportCard.classList.contains('open');
-       
-       // 2. Apply a temporary 'printing' class to the body
-       document.body.classList.add('print-mode-active');
-       reportCard.classList.add('print-this-card');
-       reportCard.classList.add('open');
-   
-       // 3. Trigger native print (Browser will handle OKLCH perfectly)
-       window.print();
-   
-       // 4. Cleanup after print dialog closes
-       setTimeout(() => {
-           document.body.classList.remove('print-mode-active');
-           reportCard.classList.remove('print-this-card');
-           if (!wasOpen) reportCard.classList.remove('open');
-       }, 500);
-   }
+    const wasOpen = reportCard.classList.contains('open');
+    
+    // Apply temporary 'printing' class to the body
+    document.body.classList.add('print-mode-active');
+    reportCard.classList.add('print-this-card');
+    reportCard.classList.add('open');
 
-        // Generate the PDF
-        await html2pdf().set(opt).from(reportCard).save();
-        
-        // Restore state
+    // Trigger native print (Browser handles OKLCH perfectly)
+    window.print();
+
+    // Cleanup after print dialog closes
+    setTimeout(() => {
+        document.body.classList.remove('print-mode-active');
+        reportCard.classList.remove('print-this-card');
         if (!wasOpen) reportCard.classList.remove('open');
-        UI.showToast('PDF Generated Successfully');
-
-    } catch (error) {
-        console.error('PDF Generation Error:', error);
-        UI.showToast('PDF Export failed. Try browser print.', 'error');
-    } finally {
-        buttonEl.innerHTML = originalText;
-        buttonEl.disabled = false;
-    }
+    }, 500);
 }
 
+/* ==============================
+   Search Logic
+   ============================== */
 InspectionManager.filterByRMBatch = function(searchTerm) {
     const term = searchTerm.toLowerCase().trim();
     const container = document.getElementById('inspectionReportsList');
     
-    // Use the cached reports from the last render
     const filtered = this.currentRenderedInspections.filter(report => {
         const rmBatch = (report.rawMaterialBatchNo || '').toLowerCase();
         const batchNo = (report.batchNumber || '').toLowerCase();
@@ -537,11 +520,13 @@ InspectionManager.filterByRMBatch = function(searchTerm) {
         ? filtered.map(renderReportCard).join('')
         : `<p class="text-center py-8 text-gray-500">No reports match "${searchTerm}"</p>`;
 };
-/* ==============================
-   Globals
-   ============================== */
 
+/* ==============================
+   Globals & Exports
+   ============================== */
 window.InspectionManager = InspectionManager;
 window.previewInspectionDimensions = () => InspectionManager.previewDimensions();
 window.saveInspectionFromTab = () => InspectionManager.saveFromTab();
 window.filterInspectionReports = () => InspectionManager.renderAllReports();
+window.toggleInspectionReport = toggleInspectionReport;
+window.exportSingleReportPDF = exportSingleReportPDF;
