@@ -222,25 +222,24 @@
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-truck-loading mr-2 text-indigo-600"></i>Raw Material Master</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" id="rmName" placeholder="Material Name (e.g., EN8 Steel)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
-                        <input type="text" id="rmDealer" placeholder="Dealer / Source" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="rmName" placeholder="Material Name" class="border ...">
+                        <select id="rmDealerSelect" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+                            <option value="">-- Select Dealer --</option>
+                        </select>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                        <input type="text" id="rmDimension" placeholder="RM Dimension (e.g., 50mm Round Bar, 40 RCS)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500">
+                        <input type="text" id="rmDimension" placeholder="RM Dimension" class="border ...">
                         <div class="flex gap-2">
-                            <input type="number" id="rmNetWeight" oninput="RawMaterialManager.calculateGrossWeight()" placeholder="Net Weight (gms)" class="border border-gray-300 rounded-lg px-4 py-3 flex-1 focus:ring-2 focus:ring-indigo-500">
-                            <select id="rmLossPercent" onchange="RawMaterialManager.calculateGrossWeight()" class="border border-gray-300 rounded-lg px-2 py-3 w-32 focus:ring-2 focus:ring-indigo-500">
+                            <input type="number" id="rmNetWeight" step="0.001" oninput="RawMaterialManager.calculateGrossWeight()" placeholder="Net Wt (kg) e.g. 0.500" class="border ... flex-1">
+                            <select id="rmLossPercent" onchange="RawMaterialManager.calculateGrossWeight()" class="border ... w-32">
                                 <option value="5">5% Loss</option>
                                 <option value="10" selected>10% Loss</option>
-                                <option value="15">15% Loss</option>
-                                <option value="20">20% Loss</option>
-                                <option value="25">25% Loss</option>
-                            </select>
+                                </select>
                         </div>
                     </div>
                     <div class="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-4">
                         <p class="text-sm text-blue-700 font-medium">
-                            Gross Weight (inc. cutting loss): <span id="rmGrossWeightDisplay" class="text-lg font-bold ml-2">0</span> gms
+                            Gross Weight: <span id="rmGrossWeightDisplay" class="text-lg font-bold ml-2">0.000</span> kg
                         </p>
                     </div>
                     <button onclick="RawMaterialManager.save()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-6 py-3 rounded-lg transition shadow-md">
