@@ -65,21 +65,32 @@ class UI {
 
         // Load data when switching tabs
         if (tabName === 'processes') {
-            ProcessManager.render();
-        } else if (tabName === 'items') {
-            ItemManager.renderAvailableProcesses();
-            ItemManager.render();
-        } else if (tabName === 'batches') {
-            BatchManager.updateItemSelect();
-            BatchManager.render();
-        } else if (tabName === 'tracking') {
-            TrackingManager.updateBatchSelect();
-            TrackingManager.renderSummary();
-        } else if (tabName === 'inspections') {
-            InspectionManager.renderTab();
-        } else if (tabName === 'dashboard') {
-            DashboardManager.render();
-        }
+                if (window.ProcessManager) ProcessManager.render();
+            } else if (tabName === 'items') {
+                if (window.ItemManager) {
+                    ItemManager.renderAvailableProcesses();
+                    ItemManager.render();
+                }
+            } else if (tabName === 'batches') {
+                if (window.BatchManager) {
+                    BatchManager.updateItemSelect();
+                    BatchManager.render();
+                }
+            } else if (tabName === 'tracking') {
+                if (window.TrackingManager) {
+                    TrackingManager.updateBatchSelect();
+                    TrackingManager.renderSummary();
+                }
+            } else if (tabName === 'inspections') {
+                // SAFETY CHECK: Ensure InspectionManager exists
+                if (window.InspectionManager) {
+                    InspectionManager.renderTab();
+                } else {
+                    console.error('InspectionManager not loaded yet');
+                }
+            } else if (tabName === 'dashboard') {
+                if (window.DashboardManager) DashboardManager.render();
+            }
     }
 
     // API Status Checker
