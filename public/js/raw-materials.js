@@ -96,6 +96,5 @@ class RawMaterialManager {
     }
 }
 
-
-window.DealerManager = DealerManager;
 window.RawMaterialManager = RawMaterialManager;;
+window.DealerManager = DealerManager;
