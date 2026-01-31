@@ -96,6 +96,7 @@ class UI {
                 if (window.RawMaterialManager && window.DealerManager) {
                     RawMaterialManager.render();
                     DealerManager.render();
+                    RawMaterialManager.updateDealerDropdown();
                 } else {
                     console.warn("Raw Material Managers not yet initialized.");
                 }
