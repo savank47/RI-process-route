@@ -159,8 +159,7 @@
 
             <!-- ITEMS TAB -->
             <div id="content-items" class="hidden">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-10 transition-all">
-    
+                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-10">
                     <div class="flex items-center gap-3 mb-8">
                         <div class="bg-green-50 text-green-600 p-2 rounded-lg">
                             <i class="fas fa-plus-circle text-lg"></i>
@@ -171,43 +170,41 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Name</label>
-                            <input type="text" id="itemName" placeholder="e.g. Brake Disc" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition-all outline-none bg-white">
+                            <input type="text" id="itemName" placeholder="e.g. Brake Disc" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Code</label>
-                            <input type="text" id="itemCode" placeholder="e.g. BD-001" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition-all outline-none bg-white">
+                            <input type="text" id="itemCode" placeholder="e.g. BD-001" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Specifications</label>
-                            <input type="text" id="itemSpecs" placeholder="Dimensions / Grade" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition-all outline-none bg-white">
+                            <input type="text" id="itemSpecs" placeholder="Dimensions / Grade" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
                         </div>
                     </div>
                 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Raw Material Association</label>
-                            <select id="itemMaterialSelect" 
-                                    class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer transition-all outline-none appearance-none">
+                            <select id="itemMaterialSelect" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white outline-none">
                                 <option value="">-- Select Material from Master --</option>
                             </select>
-                            <p class="text-[10px] text-gray-400 mt-2 ml-1 italic font-medium">Links weights and dealer info from Raw Material Master.</p>
                         </div>
                         <div class="space-y-1">
                             <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Category</label>
-                            <input type="text" id="itemCategory" placeholder="e.g. Brakes, Engine" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 transition-all outline-none bg-white">
+                            <input type="text" id="itemCategory" placeholder="e.g. Brakes" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
                         </div>
                     </div>
                 
+                    <div id="availableProcesses" class="hidden"></div> 
+                
                     <div class="flex justify-end pt-6 border-t border-gray-50">
-                        <button onclick="ItemManager.save()" 
-                                class="bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-3 rounded-lg shadow-lg hover:shadow-green-100 transition-all active:scale-95 flex items-center gap-2">
+                        <button onclick="ItemManager.save()" class="bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-3 rounded-lg shadow-lg flex items-center gap-2">
                             <i class="fas fa-save"></i> Save Item Master
                         </button>
                     </div>
+                </div>
+                
+                <div id="itemList" class="space-y-4">
                 </div>
             </div>
 
