@@ -159,59 +159,62 @@
 
             <!-- ITEMS TAB -->
             <div id="content-items" class="hidden">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-8 mb-10 transition-all hover:shadow-md">
-                    <div class="flex items-center gap-4 mb-8 border-b border-gray-100 pb-5">
-                        <div class="bg-green-50 text-green-600 p-3 rounded-xl">
-                            <i class="fas fa-plus-circle text-lg"></i>
+                <div class="bg-gray-50/50 p-10 rounded-2xl border border-gray-100 shadow-sm mb-12">
+                    
+                    <div class="flex items-start justify-between mb-10">
+                        <div class="flex gap-5">
+                            <div class="bg-white shadow-md p-4 rounded-2xl border border-gray-100">
+                                <i class="fas fa-cube text-2xl text-green-600"></i>
+                            </div>
+                            <div>
+                                <h2 class="text-2xl font-black text-gray-900 tracking-tight">Item Master Definition</h2>
+                                <p class="text-sm text-gray-500 font-medium">Configure core component parameters and material links</p>
+                            </div>
                         </div>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-800">Create New Item</h2>
-                            <p class="text-xs text-gray-500 mt-1">Add a new component to your production master list</p>
-                        </div>
-                    </div>
-                
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Name</label>
-                            <input type="text" id="itemName" placeholder="e.g. Brake Disc" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none bg-gray-50/30">
-                        </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Code</label>
-                            <input type="text" id="itemCode" placeholder="e.g. BD-001" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3.5 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all outline-none bg-gray-50/30">
+                        <div class="px-4 py-1.5 bg-green-50 text-green-700 rounded-full text-[10px] font-bold uppercase tracking-widest border border-green-100">
+                            Design Mode
                         </div>
                     </div>
                 
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
-                        <div class="md:col-span-2 space-y-2">
-                            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Raw Material Association</label>
-                            <select id="itemMaterialSelect" 
-                                    class="w-full border border-gray-200 rounded-lg px-4 py-3.5 focus:ring-2 focus:ring-blue-500 bg-white cursor-pointer transition-all outline-none">
-                                <option value="">-- Select Material from Master --</option>
-                            </select>
-                            <p class="text-[10px] text-gray-400 italic ml-1 font-medium">Auto-links weights and dealer info from Raw Materials tab.</p>
+                    <div class="grid grid-cols-1 md:grid-cols-12 gap-x-8 gap-y-10 mb-12">
+                        
+                        <div class="md:col-span-8 group">
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1 group-focus-within:text-green-600 transition-colors">Primary Item Name</label>
+                            <input type="text" id="itemName" placeholder="e.g. Precision Brake Disc" 
+                                   class="w-full bg-white border-b-2 border-gray-100 rounded-xl px-5 py-4 text-gray-800 placeholder-gray-300 focus:border-green-500 transition-all outline-none shadow-sm group-hover:shadow-md">
                         </div>
-                        <div class="space-y-2">
-                            <label class="text-[11px] font-bold text-gray-400 uppercase tracking-widest ml-1">Category</label>
-                            <input type="text" id="itemCategory" placeholder="e.g. Brakes" 
-                                   class="w-full border border-gray-200 rounded-lg px-4 py-3.5 focus:ring-2 focus:ring-green-500 transition-all outline-none bg-gray-50/30">
+                
+                        <div class="md:col-span-4 group">
+                            <label class="block text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mb-3 ml-1 group-focus-within:text-green-600 transition-colors">Component ID</label>
+                            <input type="text" id="itemCode" placeholder="BD-001" 
+                                   class="w-full bg-white border-b-2 border-gray-100 rounded-xl px-5 py-4 text-gray-800 placeholder-gray-300 focus:border-green-500 transition-all outline-none shadow-sm group-hover:shadow-md text-center font-mono font-bold">
                         </div>
+                
+                        <div class="md:col-span-12 group bg-blue-50/30 p-8 rounded-2xl border border-blue-50/50">
+                            <label class="block text-[11px] font-bold text-blue-400 uppercase tracking-[0.2em] mb-4 ml-1">Raw Material Linkage (Master Database)</label>
+                            <div class="relative">
+                                <select id="itemMaterialSelect" 
+                                        class="w-full bg-white border-2 border-blue-100 rounded-xl px-6 py-4.5 text-gray-700 cursor-pointer appearance-none focus:border-blue-500 transition-all outline-none shadow-sm font-semibold pr-12">
+                                    <option value="">-- Connect to Raw Material Library --</option>
+                                </select>
+                                <div class="absolute right-5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-300">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-blue-400 italic mt-3 ml-1">System will automatically synchronize weight constants (kg) from the Raw Material tab.</p>
+                        </div>
+                
                     </div>
                 
-                    <div class="flex justify-end pt-4 border-t border-gray-50">
+                    <div class="flex items-center justify-between pt-8 border-t border-gray-100">
+                        <p class="text-xs text-gray-400 font-medium italic">Changes will be pushed to the global production master list.</p>
                         <button onclick="ItemManager.save()" 
-                                class="bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-3.5 rounded-lg shadow-lg hover:shadow-green-200 transition-all active:transform active:scale-95 flex items-center gap-3">
-                            <i class="fas fa-save"></i> Save Item Master
+                                class="bg-green-600 hover:bg-black text-white font-bold px-12 py-4 rounded-xl shadow-xl hover:shadow-green-200 transition-all active:scale-95 flex items-center gap-4">
+                            <span class="text-sm">CREATE COMPONENT</span>
+                            <i class="fas fa-arrow-right text-xs"></i>
                         </button>
                     </div>
                 </div>
-
-                <div class="bg-white rounded-lg shadow-md p-6">
-                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-boxes mr-2 text-green-600"></i>Items List</h2>
-                    <div id="itemsList" class="space-y-4"></div>
-                </div>
-            </div>
 
             <!--RAW MATERIAL TAB  -->
             <div id="content-raw-materials" class="hidden animate-slide-in space-y-8"> <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
