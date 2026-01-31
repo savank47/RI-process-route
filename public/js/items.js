@@ -257,21 +257,21 @@ class ItemManager {
     }
 
     static async updateMaterialDropdown() {
-        const select = document.getElementById('itemMaterialSelect');
-        if (!select) return;
-    
-        try {
-            // Fetch materials from your working /api/raw-materials endpoint
-            const materials = await api.call('/raw-materials', 'GET');
-            
-            select.innerHTML = '<option value="">-- Select Material --</option>' + 
-                materials.map(m => `
-                    <option value="${m._id}" data-gross="${m.grossWeight}">
-                        ${m.name} (${m.dimension})
-                    </option>
-                `).join('');
-        } catch (error) {
-            console.error("Failed to load materials for items:", error);
+    const select = document.getElementById('itemMaterialSelect');
+    if (!select) return;
+
+    try {
+        const materials = await api.call('/raw-materials', 'GET');
+        
+        // Premium formatting for the dropdown options
+        select.innerHTML = '<option value="">-- Select Material from Master --</option>' + 
+            materials.map(m => `
+                <option value="${m._id}">
+                    ${m.name} | ${m.dimension} (${parseFloat(m.grossWeight).toFixed(3)} kg)
+                </option>
+            `).join('');
+    } catch (error) {
+        console.error("Failed to load materials for item master:", error);
         }
     }
 }
