@@ -158,57 +158,61 @@
             </div>
 
             <!-- ITEMS TAB -->
-            <div id="content-items" class="hidden">
-                <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 mb-10">
-                    <div class="flex items-center gap-3 mb-8">
-                        <div class="bg-green-50 text-green-600 p-2 rounded-lg">
-                            <i class="fas fa-plus-circle text-lg"></i>
-                        </div>
-                        <h2 class="text-xl font-bold text-gray-800">Create New Item</h2>
+           <div id="content-items" class="hidden">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-plus-circle mr-2 text-green-600"></i>Create New Item</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <input type="text" id="itemName" placeholder="Item Name (e.g., Brake Disc)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
+                        <input type="text" id="itemCode" placeholder="Item Code (e.g., BD-001)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
+                        <input type="text" id="itemSpec" placeholder="Specifications" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
                     </div>
-                
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            
+                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Name</label>
-                            <input type="text" id="itemName" placeholder="e.g. Brake Disc" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Code</label>
-                            <input type="text" id="itemCode" placeholder="e.g. BD-001" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
-                        </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Specifications</label>
-                            <input type="text" id="itemSpecs" placeholder="Dimensions / Grade" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
-                        </div>
-                    </div>
-                
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Raw Material Association</label>
-                            <select id="itemMaterialSelect" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white outline-none">
-                                <option value="">-- Select Material from Master --</option>
+                            <select id="itemMaterialSelect" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white">
+                                <option value="">-- Select Raw Material Link --</option>
                             </select>
+                            <p class="text-[10px] text-gray-400 ml-1">Connects this item to weights in Raw Materials tab.</p>
                         </div>
-                        <div class="space-y-1">
-                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Category</label>
-                            <input type="text" id="itemCategory" placeholder="e.g. Brakes" class="w-full border border-gray-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                        <input type="text" id="itemCategory" placeholder="Category (e.g., Brakes, Engine)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
+                    </div>
+            
+                    <div class="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
+                        <h3 class="font-semibold text-gray-700 mb-3"><i class="fas fa-ruler-combined mr-2"></i>Define Dimensions with Tolerances</h3>
+                        <div id="dimensionsContainer" class="space-y-3 mb-3"></div>
+                        <button type="button" onclick="addDimensionRow()" class="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg text-sm transition">
+                            <i class="fas fa-plus mr-2"></i>Add Dimension
+                        </button>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h3 class="font-semibold text-gray-700 mb-3"><i class="fas fa-route mr-2"></i>Define Process Route for This Item</h3>
+                        <div class="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2">Available Processes (Click to Add):</h4>
+                            <div id="availableProcessesForItem" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        
+                        <div class="p-4 bg-indigo-50 rounded-lg border-2 border-dashed border-indigo-200 drop-zone" id="processRouteZone">
+                            <h4 class="text-sm font-medium text-gray-700 mb-2"><i class="fas fa-list-ol mr-2"></i>Process Route:</h4>
+                            <div id="selectedProcessRoute" class="flex flex-wrap gap-2 min-h-[60px]"></div>
                         </div>
                     </div>
-                
-                    <div id="availableProcesses" class="hidden"></div> 
-                
-                    <div class="flex justify-end pt-6 border-t border-gray-50">
-                        <button onclick="ItemManager.save()" class="bg-green-600 hover:bg-green-700 text-white font-bold px-10 py-3 rounded-lg shadow-lg flex items-center gap-2">
-                            <i class="fas fa-save"></i> Save Item Master
+                    
+                    <div class="mt-4 flex gap-3">
+                        <button onclick="addItem()" class="bg-green-600 hover:bg-green-700 text-white font-medium px-6 py-3 rounded-lg transition shadow-md">
+                            <i class="fas fa-save mr-2"></i>Save Item
+                        </button>
+                        <button onclick="clearItemForm()" class="bg-gray-500 hover:bg-gray-600 text-white font-medium px-6 py-3 rounded-lg transition shadow-md">
+                            <i class="fas fa-times mr-2"></i>Clear Form
                         </button>
                     </div>
                 </div>
-                
-                <div id="availableProcesses" class="mt-4 p-4 border border-gray-100 rounded-lg bg-gray-50">
+            
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-boxes mr-2 text-green-600"></i>Items List</h2>
+                    <div id="itemsList" class="space-y-4"></div>
                 </div>
-     
-            </div>
-            <div id="itemList" class="space-y-4">
             </div>
 
             <!--RAW MATERIAL TAB  -->
