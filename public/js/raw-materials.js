@@ -113,5 +113,6 @@ static async save() {
     }
 }
 
+RawMaterialManager.updateDealerDropdown();
 window.RawMaterialManager = RawMaterialManager;;
 window.DealerManager = DealerManager;
