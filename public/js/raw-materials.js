@@ -5,8 +5,8 @@ class DealerManager {
         
         await api.call('/dealers', 'POST', { name });
         document.getElementById('dealerName').value = '';
-        this.render();
-        RawMaterialManager.updateDealerDropdown(); // Refresh the RM form dropdown
+        await this.render();
+        await RawMaterialManager.updateDealerDropdown(); // Refresh the RM form dropdown
     }
 
     static async render() {
