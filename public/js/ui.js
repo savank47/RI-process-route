@@ -92,9 +92,12 @@ class UI {
                 if (window.DashboardManager) DashboardManager.render();
             }
               else if (tabName === 'raw-materials') {
+                // Only run if the managers have successfully loaded into the window
                 if (window.RawMaterialManager && window.DealerManager) {
                     RawMaterialManager.render();
                     DealerManager.render();
+                } else {
+                    console.warn("Raw Material Managers not yet initialized.");
                 }
             }
     }
