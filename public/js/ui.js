@@ -70,6 +70,7 @@ class UI {
                 if (window.ItemManager) {
                     ItemManager.renderAvailableProcesses();
                     ItemManager.render();
+                    ItemManager.updateMaterialDropdown();
                 }
             } else if (tabName === 'batches') {
                 if (window.BatchManager) {
