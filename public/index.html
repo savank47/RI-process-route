@@ -162,20 +162,31 @@
                 <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                     <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-plus-circle mr-2 text-green-600"></i>Create New Item</h2>
                     
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <input type="text" id="itemName" placeholder="Item Name (e.g., Brake Disc)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
-                        <input type="text" id="itemCode" placeholder="Item Code (e.g., BD-001)" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
-                        <input type="text" id="itemSpec" placeholder="Specifications" class="border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500">
-                    </div>
-            
-                    <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <div class="space-y-1">
-                            <select id="itemMaterialSelect" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white">
-                                <option value="">-- Select Raw Material Link --</option>
-                            </select>
-                            <p class="text-[10px] text-gray-400 ml-1">Connects this item to weights in Raw Materials tab.</p>
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Name</label>
+                            <input type="text" id="itemName" placeholder="e.g. Brake Disc" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
                         </div>
-                        <input type="text" id="itemCategory" placeholder="Category (e.g., Brakes, Engine)" class="border border-gray-300 rounded-lg px-4 py-[10px] focus:ring-2 focus:ring-green-500">
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Item Code</label>
+                            <input type="text" id="itemCode" placeholder="e.g. BD-001" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none font-mono">
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Specifications</label>
+                            <input type="text" id="itemSpec" placeholder="Dimensions / Grade" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                        </div>
+                    
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Raw Material Association</label>
+                            <select id="itemMaterialSelect" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 bg-white outline-none">
+                                <option value="">-- Select Material --</option>
+                            </select>
+                        </div>
+                        <div class="space-y-1">
+                            <label class="text-[10px] font-bold text-gray-400 uppercase tracking-widest ml-1">Category</label>
+                            <input type="text" id="itemCategory" placeholder="e.g. Brakes" class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 outline-none">
+                        </div>
+                        <div class="hidden md:block"></div> 
                     </div>
             
                     <div class="mt-6 p-4 bg-amber-50 rounded-lg border border-amber-200">
