@@ -39,13 +39,22 @@ class RawMaterialManager {
             dealers.map(d => `<option value="${d.name}">${d.name}</option>`).join('');
     }
 
-    static async save() {
+static async save() {
+        // Use a safety check to prevent the 'null' crash
+        const dealerEl = document.getElementById('rmDealerSelect');
+        const nameEl = document.getElementById('rmName');
+        
+        if (!dealerEl || !nameEl) {
+            console.error("Form elements missing!");
+            return;
+        }
+
         const material = {
-            name: document.getElementById('rmName').value,
-            dealer: document.getElementById('rmDealer').value,
+            name: nameEl.value,
+            dealer: dealerEl.value, // FIXED ID
             dimension: document.getElementById('rmDimension').value,
-            netWeight: parseFloat(document.getElementById('rmNetWeight').value),
-            lossPercent: parseInt(document.getElementById('rmLossPercent').value),
+            netWeight: parseFloat(document.getElementById('rmNetWeight').value) || 0,
+            lossPercent: parseInt(document.getElementById('rmLossPercent').value) || 0,
             grossWeight: this.calculateGrossWeight()
         };
 
@@ -62,6 +71,14 @@ class RawMaterialManager {
         } catch (error) {
             UI.showToast('Failed to save material', 'error');
         }
+    }
+
+    static clearForm() {
+        document.getElementById('rmName').value = '';
+        document.getElementById('rmDealerSelect').value = ''; // FIXED ID
+        document.getElementById('rmDimension').value = '';
+        document.getElementById('rmNetWeight').value = '';
+        document.getElementById('rmGrossWeightDisplay').textContent = '0.000';
     }
 
  static async render() {
